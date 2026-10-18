@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="语法闯关">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#667eea">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<title>英语语法闯关挑战 · iPad 版</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft Yahei", Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+/* 顶部状态栏 */
+.top-bar {
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.status-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.status-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+}
+
+.status-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.status-value.score {
+    color: #f39c12;
+}
+
+.status-value.cover-ok { color: #27ae60; }
+.status-value.cover-no { color: #e74c3c; }
+
+/* 组切换栏 */
+.group-bar {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.group-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: all 0.2s;
+}
+
+.group-btn:hover:not(:disabled) {
+    background: #4a90e2;
+    color: white;
+}
+
+.group-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.group-info {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c3e50;
+    min-width: 180px;
+    text-align: center;
+}
+
+.group-info .sub {
+    font-size: 13px;
+    color: #7f8c8d;
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+.group-info .sub.extra {
+    color: #9b59b6;
+    font-weight: bold;
+}
+
+/* 操作栏 */
+.operate-bar {
+    max-width: 1000px;
+    margin: 10px auto 20px;
+    padding: 0 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.operate-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #4a90e2;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.operate-btn:hover {
+    background: #357abd;
+    transform: translateY(-1px);
+}
+
+.operate-btn.orange { background: #f39c12; }
+.operate-btn.orange:hover { background: #e67e22; }
+.operate-btn.green { background: #27ae60; }
+.operate-btn.green:hover { background: #219a52; }
+.operate-btn.purple { background: #9b59b6; }
+.operate-btn.purple:hover { background: #8e44ad; }
+.operate-btn.gray { background: #95a5a6; }
+.operate-btn.gray:hover { background: #7f8c8d; }
+
+/* 解锁提示 */
+.unlock-tip {
+    max-width: 1000px;
+    margin: 0 auto 10px;
+    padding: 12px 20px;
+    background: #e8f6f3;
+    border: 1px solid #27ae60;
+    border-radius: 8px;
+    color: #1e8449;
+    font-size: 14px;
+    text-align: center;
+    font-weight: bold;
+    animation: slideDown 0.3s;
+}
+
+.unlock-tip.warn {
+    background: #fef6e7;
+    border-color: #f39c12;
+    color: #b9770e;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 题目网格 */
+.grid-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+.grid-item {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 14px;
+    background: #fff;
+    color: #4a90e2;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    position: relative;
+}
+
+.grid-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(74,144,226,0.2);
+    color: #357abd;
+}
+
+.grid-item.done {
+    cursor: default;
+    transform: none;
+}
+
+.grid-item.correct {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.grid-item.wrong {
+    background: #fdf0ef;
+    color: #e74c3c;
+}
+
+.grid-item .star {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 14px;
+}
+
+/* 弹窗通用 */
+.modal-mask {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal-box {
+    background: white;
+    width: 100%;
+    max-width: 620px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin: 18px 0 10px;
+    padding-left: 8px;
+    border-left: 4px solid #4a90e2;
+}
+
+/* 答题弹窗 */
+.question-text {
+    font-size: 20px;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.question-point {
+    text-align: center;
+    font-size: 13px;
+    color: #9b59b6;
+    background: #f6f0fa;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 0 auto 18px;
+    display: table;
+}
+
+.options-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.option-btn {
+    padding: 14px 18px;
+    border: 2px solid #e8ecef;
+    border-radius: 10px;
+    background: #fafbfc;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: #34495e;
+}
+
+.option-btn:hover {
+    border-color: #4a90e2;
+    background: #f0f7ff;
+}
+
+.option-btn.correct {
+    border-color: #27ae60;
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.option-btn.wrong {
+    border-color: #e74c3c;
+    background: #fdf0ef;
+    color: #e74c3c;
+}
+
+.feedback-line {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    min-height: 24px;
+}
+
+.feedback-line.correct { color: #27ae60; }
+.feedback-line.wrong { color: #e74c3c; }
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.close-btn {
+    padding: 9px 22px;
+    border: none;
+    border-radius: 8px;
+    background: #4a90e2;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.close-btn:hover { background: #357abd; }
+
+/* 总结弹窗 */
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f2f5;
+    font-size: 15px;
+}
+
+.summary-row:last-child { border-bottom: none; }
+.summary-row .label { color: #7f8c8d; }
+.summary-row .value { font-weight: bold; color: #2c3e50; }
+
+/* 知识图谱 折叠层级 */
+.tree-level1 { margin-bottom: 12px; }
+
+.tree-btn {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #f8f9fa;
+    text-align: left;
+    font-size: 15px;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.tree-btn:hover { background: #eef2f7; }
+
+.tree-btn .arrow {
+    transition: transform 0.2s;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.tree-btn.open .arrow { transform: rotate(90deg); }
+
+.tree-children {
+    display: none;
+    padding-left: 16px;
+    margin-top: 8px;
+    border-left: 2px solid #e8ecef;
+}
+
+.tree-children.open { display: block; }
+.tree-level2 { margin-bottom: 8px; }
+.tree-btn.level2 { padding: 10px 14px; font-size: 14px; background: #fdfdfd; }
+
+.tree-level3 {
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #34495e;
+}
+
+.tree-level3 .name {
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.tree-level3 .cover-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #bdc3c7;
+    flex-shrink: 0;
+}
+
+.tree-level3 .cover-dot.yes { background: #27ae60; }
+.tree-level3 .cover-dot.no { background: #e74c3c; }
+
+.tree-badge {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: #ecf0f1;
+    color: #7f8c8d;
+    flex-shrink: 0;
+}
+
+.tree-badge.lv1 { background: #eafaf1; color: #27ae60; }
+.tree-badge.lv2 { background: #fef6e7; color: #d68910; }
+.tree-badge.lv3 { background: #fdf0ef; color: #e74c3c; }
+
+/* 进度条 */
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    border-radius: 5px;
+    background: #ecf0f1;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s;
+}
+
+.progress-fill.excellent { background: #27ae60; }
+.progress-fill.good { background: #f39c12; }
+.progress-fill.normal { background: #e67e22; }
+.progress-fill.weak { background: #e74c3c; }
+.progress-fill.none { background: #bdc3c7; }
+
+.progress-text {
+    min-width: 50px;
+    text-align: right;
+    font-size: 12px;
+    color: #7f8c8d;
+    font-weight: bold;
+}
+
+/* 覆盖率面板 */
+.cover-panel {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 8px;
+}
+
+.cover-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #2c3e50;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.cover-bar {
+    height: 12px;
+    background: #ecf0f1;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cover-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    transition: width 0.4s;
+}
+
+.chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: #fdf0ef;
+    color: #e74c3c;
+    border: 1px solid #f5c6c2;
+}
+
+.chip.ok {
+    background: #eafaf1;
+    color: #27ae60;
+    border-color: #bfe6cf;
+}
+
+/* 错题本 */
+.wrong-item {
+    padding: 12px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.wrong-item:last-child { border-bottom: none; }
+.wrong-question { font-size: 15px; color: #2c3e50; margin-bottom: 6px; }
+.wrong-info { font-size: 13px; color: #7f8c8d; }
+.wrong-info span { color: #e74c3c; }
+
+.empty-tip {
+    text-align: center;
+    color: #95a5a6;
+    padding: 40px 0;
+    font-size: 14px;
+}
+
+/* 成就面板 */
+.achievement-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.achievement-card {
+    padding: 12px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    text-align: center;
+    opacity: 0.4;
+}
+
+.achievement-card.unlocked {
+    background: #fff8e1;
+    opacity: 1;
+}
+
+.achievement-icon { font-size: 24px; margin-bottom: 4px; }
+.achievement-name { font-size: 13px; font-weight: bold; color: #2c3e50; }
+.achievement-desc { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+
+/* ===================== iPad / 触屏适配 ===================== */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+button {
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.modal-mask {
+    overscroll-behavior: contain;
+}
+
+.modal-box {
+    -webkit-overflow-scrolling: touch;
+    max-width: min(620px, 94vw);
+}
+
+/* ---------- iPad 横屏（1024 ~ 1180） ---------- */
+@media (max-width: 1100px) {
+    .status-wrap, .group-bar, .operate-bar, .grid-container, .unlock-tip { max-width: 940px; }
+    .grid-container { gap: 12px; }
+    .grid-item { font-size: 30px; }
+}
+
+/* ---------- iPad 竖屏（768 / 810 / 834） ---------- */
+@media (max-width: 860px) {
+    .top-bar {
+        padding: 12px 14px;
+        padding-top: calc(12px + env(safe-area-inset-top));
+    }
+    .status-wrap { gap: 6px; }
+    .status-label { font-size: 12px; }
+    .status-value { font-size: 20px; }
+
+    .group-bar { margin: 14px auto; gap: 14px; }
+    .group-btn { width: 46px; height: 46px; font-size: 20px; }
+    .group-info { font-size: 17px; min-width: 168px; }
+
+    .operate-bar { gap: 8px; margin: 6px auto 14px; }
+    .operate-btn { padding: 11px 16px; font-size: 14px; }
+
+    .grid-container { padding: 0 16px; gap: 11px; }
+    .grid-item { font-size: 26px; border-radius: 13px; }
+
+    .modal-box { padding: 22px; border-radius: 16px; }
+    .question-text { font-size: 19px; margin-bottom: 6px; }
+    .option-btn { padding: 13px 16px; font-size: 16px; }
+    .close-btn { padding: 10px 24px; font-size: 15px; }
+    .section-title { font-size: 15px; }
+}
+
+/* ---------- 窄屏：iPad 分屏 / 竖屏三分之一 ---------- */
+@media (max-width: 620px) {
+    .status-wrap { gap: 4px; }
+    .status-item { min-width: 56px; }
+    .status-label { font-size: 11px; }
+    .status-value { font-size: 17px; }
+
+    .group-bar { gap: 10px; }
+    .group-btn { width: 42px; height: 42px; font-size: 18px; }
+    .group-info { font-size: 15px; min-width: 128px; }
+    .group-info .sub { font-size: 12px; }
+
+    .operate-bar { gap: 6px; }
+    .operate-btn { padding: 10px 12px; font-size: 13px; }
+
+    .grid-container { padding: 0 12px; gap: 8px; }
+    .grid-item { font-size: 21px; border-radius: 11px; }
+    .grid-item .star { font-size: 11px; top: 3px; right: 4px; }
+
+    .modal-box { padding: 18px; max-width: 96vw; }
+    .modal-title { font-size: 18px; }
+    .question-text { font-size: 17px; }
+    .question-point { font-size: 12px; padding: 3px 10px; }
+    .option-btn { padding: 12px 14px; font-size: 15px; }
+    .feedback-line { font-size: 15px; }
+
+    .tree-level3 { gap: 8px; font-size: 12px; padding: 7px 10px; }
+    .tree-level3 .name { min-width: 88px; }
+    .progress-text { min-width: 42px; font-size: 11px; }
+    .achievement-list { gap: 8px; }
+}
+
+/* ---------- 触屏：去掉粘滞的 hover，改为按下反馈 ---------- */
+@media (hover: none) {
+    .grid-item:hover {
+        transform: none;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+        color: #4a90e2;
+    }
+    .grid-item.done:hover { transform: none; }
+    .grid-item:active { transform: scale(0.95); }
+
+    .group-btn:hover:not(:disabled) { background: #fff; color: #2c3e50; }
+    .group-btn:active:not(:disabled) { background: #4a90e2; color: #fff; }
+
+    .operate-btn:hover { transform: none; }
+    .operate-btn.orange:hover { background: #f39c12; }
+    .operate-btn.green:hover { background: #27ae60; }
+    .operate-btn.purple:hover { background: #9b59b6; }
+    .operate-btn.gray:hover { background: #95a5a6; }
+    .operate-btn:active { transform: translateY(1px); opacity: 0.9; }
+
+    .option-btn:hover { border-color: #e8ecef; background: #fafbfc; }
+    .option-btn:active { border-color: #4a90e2; background: #eaf2ff; }
+
+    .close-btn:hover { background: #4a90e2; }
+    .close-btn:active { background: #357abd; }
+
+    .tree-btn:hover { background: #f8f9fa; }
+    .tree-btn.level2:hover { background: #fdfdfd; }
+    .tree-btn:active { background: #eef2f7; }
+}
+</style>
+</head>
+<body>
+
+<noscript>
+    <div style="max-width:700px;margin:80px auto;padding:30px;background:#fff;border-radius:16px;text-align:center;line-height:2;font-size:17px;color:#e74c3c;">
+        <div style="font-size:22px;font-weight:bold;margin-bottom:12px;">⚠️ JavaScript 未启用，页面无法显示</div>
+        请在 iPad 上打开：<b>设置 → Safari 浏览器 → 高级 → JavaScript</b><br>开启后回到本页刷新即可。<br><br>
+        <span style="font-size:14px;color:#7f8c8d;">如果是在微信 / QQ 里打开的，请点右上角「···」→「用 Safari 浏览器打开」。</span>
+    </div>
+</noscript>
+
+<div id="bootMsg" style="max-width:700px;margin:60px auto;padding:26px;background:#fff;border-radius:16px;text-align:center;line-height:2;font-size:17px;color:#34495e;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+    <div style="font-size:21px;font-weight:bold;margin-bottom:10px;">⏳ 正在加载题库…</div>
+    <div style="font-size:14px;color:#7f8c8d;">如果这行字一直不消失，说明 JavaScript 被拦截或没有启用。</div>
+</div>
+
+<div id="envTip" style="display:none;max-width:1000px;margin:12px auto 0;padding:12px 18px;background:#fef6e7;border:1px solid #f39c12;border-radius:10px;color:#b9770e;font-size:14px;line-height:1.7;font-weight:bold;"></div>
+
+<!-- 顶部状态栏 -->
+<div class="top-bar">
+    <div class="status-wrap">
+        <div class="status-item">
+            <div class="status-label">总积分</div>
+            <div class="status-value score" id="scoreText">0</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">已解锁</div>
+            <div class="status-value" id="unlockText">1/30组</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">总进度</div>
+            <div class="status-value" id="progressText">0%</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">最高分</div>
+            <div class="status-value" id="highScoreText">0</div>
+        </div>
+        <div class="status-item">
+            <div class="status-label">知识点覆盖</div>
+            <div class="status-value" id="coverText">0/0</div>
+        </div>
+    </div>
+</div>
+
+<!-- 组切换栏 -->
+<div class="group-bar">
+    <button class="group-btn" id="prevGroup" onclick="switchGroup(-1)">◀</button>
+    <div class="group-info">
+        第 <span id="currentGroupText">1</span> 组
+        <div class="sub" id="groupLevelText">基础入门篇</div>
+    </div>
+    <button class="group-btn" id="nextGroup" onclick="switchGroup(1)">▶</button>
+</div>
+
+<!-- 操作栏 -->
+<div class="operate-bar">
+    <button class="operate-btn orange" onclick="showSummary()">闯关总结</button>
+    <button class="operate-btn purple" onclick="showKnowledgeTree()">📊 知识图谱</button>
+    <button class="operate-btn green" onclick="showWrongBook()">📚 错题本</button>
+    <button class="operate-btn" onclick="showAchievements()">🏆 成就墙</button>
+    <button class="operate-btn gray" onclick="resetGame()">重新开始</button>
+</div>
+
+<!-- 解锁提示 -->
+<div id="unlockTip" style="display:none;"></div>
+
+<!-- 题目网格 -->
+<div class="grid-container" id="grid"></div>
+
+<!-- 答题弹窗 -->
+<div class="modal-mask" id="quizModal" onclick="if(event.target===this) closeQuiz()">
+    <div class="modal-box">
+        <div class="question-text" id="questionText"></div>
+        <div class="question-point" id="questionPoint"></div>
+        <div class="options-box" id="optionsBox"></div>
+        <div class="feedback-line" id="feedbackLine"></div>
+        <div class="modal-footer">
+            <button class="close-btn" onclick="closeQuiz()">下一题</button>
+        </div>
+    </div>
+</div>
+
+<!-- 总结弹窗 -->
+<div class="modal-mask" id="summaryModal" onclick="if(event.target===this) closeSummary()">
+    <div class="modal-box">
+        <div class="modal-title">🎉 闯关总结</div>
+        <div id="overviewContent"></div>
+
+        <div class="section-title">知识点掌握明细</div>
+        <div id="pointDetail"></div>
+
+        <div class="feedback-text" id="feedbackText" style="margin-top:15px;padding:14px;background:#f0f7ff;border-radius:10px;line-height:1.6;font-size:14px;color:#34495e;"></div>
+        
+        <div style="text-align:center; margin-top:20px;">
+            <button class="close-btn" onclick="closeSummary()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 知识图谱弹窗 -->
+<div class="modal-mask" id="treeModal" onclick="if(event.target===this) closeTree()">
+    <div class="modal-box">
+        <div class="modal-title">📊 英语知识图谱 · 覆盖自检</div>
+        <div class="cover-panel" id="coverPanel"></div>
+        <div id="treeContainer"></div>
+        <div style="text-align:center; margin-top:20px;">
+            <button class="operate-btn purple" onclick="manualFillGroups()">➕ 检查覆盖并补组</button>
+            <button class="close-btn" onclick="closeTree()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 错题本弹窗 -->
+<div class="modal-mask" id="wrongModal" onclick="if(event.target===this) closeWrongBook()">
+    <div class="modal-box">
+        <div class="modal-title">📚 错题本</div>
+        <div id="wrongList"></div>
+        <div style="text-align:center; margin-top:20px;">
+            <button class="close-btn" onclick="closeWrongBook()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 成就墙弹窗 -->
+<div class="modal-mask" id="achievementModal" onclick="if(event.target===this) closeAchievements()">
+    <div class="modal-box">
+        <div class="modal-title">🏆 成就墙</div>
+        <div class="achievement-list" id="achievementList"></div>
+        <div style="text-align:center; margin-top:20px;">
+            <button class="close-btn" onclick="closeAchievements()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== 启动自检（iPad / iOS 环境）=====
+(function(){
+    function setBoot(html){
+        var box = document.getElementById('bootMsg');
+        if(box){ box.style.display = 'block'; box.innerHTML = html; }
+    }
+    window.__setBoot = setBoot;
+    window.onerror = function(msg, src, line, col){
+        setBoot('<div style="font-size:20px;font-weight:bold;color:#e74c3c;margin-bottom:10px;">❌ 页面脚本执行出错</div>'
+            + '<div style="font-size:14px;color:#7f8c8d;line-height:1.9;text-align:left;">'
+            + '错误：' + String(msg) + '<br>位置：第 ' + line + ' 行，第 ' + col + ' 列'
+            + '</div>');
+        return false;
+    };
+    try {
+        var ua = navigator.userAgent || '';
+        var tip = document.getElementById('envTip');
+        var inApp = /MicroMessenger/i.test(ua) || /QQ\//i.test(ua) || /QQBrowser/i.test(ua) || /Weibo/i.test(ua);
+        var isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var standalone = (window.navigator.standalone === true)
+            || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+        if(tip && inApp){
+            tip.style.display = 'block';
+            tip.innerHTML = '⚠️ 当前是在微信 / QQ 的内置浏览器里打开，JavaScript 可能被限制。<br>请点右上角「···」→「用 Safari 浏览器打开」；或先把文件「存储到“文件”App」，再从「文件」App 里打开。';
+        } else if(tip && isIOS && !standalone){
+            tip.style.display = 'block';
+            tip.style.background = '#eaf3ff';
+            tip.style.border = '1px solid #4a90d9';
+            tip.style.color = '#2c5f8d';
+            tip.innerHTML = '<span style="float:right;cursor:pointer;padding:0 6px;" onclick="this.parentNode.style.display=\'none\'">✕</span>'
+                + '📌 想让它像 App 一样？点 Safari 的【分享】按钮 → 往下滑找到【添加到主屏幕】→ 点【添加】。<br>之后从桌面图标打开就是全屏，做题记录也会保留。';
+        }
+    } catch(e) {}
+})();
+// ============================================================
+// 一、知识图谱（三级树，叶子节点 = 一个知识点）
+//     level: 1基础 2进阶 3提升
+// ============================================================
+const KNOWLEDGE_TREE = [
+    {
+        id:'grammar', name:'语法', children:[
+            {
+                id:'tense', name:'动词时态', children:[
+                    { id:'present_simple', name:'一般现在时', level:1 },
+                    { id:'past_simple', name:'一般过去时', level:1 },
+                    { id:'future_simple', name:'一般将来时', level:1 },
+                    { id:'past_future', name:'过去将来时', level:2 },
+                    { id:'present_continuous', name:'现在进行时', level:1 },
+                    { id:'past_continuous', name:'过去进行时', level:2 },
+                    { id:'present_perfect', name:'现在完成时', level:2 },
+                    { id:'past_perfect', name:'过去完成时', level:3 }
+                ]
+            },
+            {
+                id:'voice', name:'动词语态', children:[
+                    { id:'passive_basic', name:'被动语态基础', level:2 },
+                    { id:'passive_adv', name:'被动语态进阶', level:3 }
+                ]
+            },
+            {
+                id:'clause', name:'三大从句', children:[
+                    { id:'object_clause', name:'宾语从句', level:2 },
+                    { id:'attributive_clause', name:'定语从句', level:3 },
+                    { id:'adv_time', name:'状语从句·时间', level:2 },
+                    { id:'adv_condition', name:'状语从句·条件', level:2 },
+                    { id:'adv_reason', name:'状语从句·原因结果', level:2 },
+                    { id:'adv_concession', name:'状语从句·让步目的', level:3 }
+                ]
+            },
+            {
+                id:'nonfinite', name:'非谓语动词', children:[
+                    { id:'infinitive', name:'动词不定式', level:2 },
+                    { id:'gerund', name:'动名词', level:2 },
+                    { id:'participle', name:'分词', level:3 }
+                ]
+            },
+            {
+                id:'modal', name:'情态动词', children:[
+                    { id:'modal_basic', name:'情态动词基础', level:1 },
+                    { id:'modal_spec', name:'情态动词推测', level:3 }
+                ]
+            },
+            {
+                id:'adjadv', name:'形容词与副词', children:[
+                    { id:'comparative', name:'比较级', level:1 },
+                    { id:'superlative', name:'最高级', level:1 },
+                    { id:'equal_degree', name:'原级与同级比较', level:2 },
+                    { id:'adverb_usage', name:'副词用法', level:2 }
+                ]
+            },
+            {
+                id:'nounpro', name:'名词与代词', children:[
+                    { id:'noun_plural', name:'名词单复数', level:1 },
+                    { id:'noun_possessive', name:'名词所有格', level:2 },
+                    { id:'pronoun_personal', name:'人称与物主代词', level:1 },
+                    { id:'pronoun_indefinite', name:'不定代词', level:2 }
+                ]
+            },
+            {
+                id:'artnum', name:'冠词与数词', children:[
+                    { id:'article', name:'冠词', level:1 },
+                    { id:'numeral', name:'数词', level:2 }
+                ]
+            },
+            {
+                id:'prepconj', name:'介词与连词', children:[
+                    { id:'preposition', name:'介词用法', level:1 },
+                    { id:'conj_coordinate', name:'并列连词', level:1 },
+                    { id:'conj_subordinate', name:'从属连词', level:2 }
+                ]
+            },
+            {
+                id:'special', name:'特殊句型', children:[
+                    { id:'there_be', name:'there be 句型', level:1 },
+                    { id:'exclamatory', name:'感叹句', level:1 },
+                    { id:'question_tag', name:'疑问句与反意疑问', level:2 },
+                    { id:'imperative', name:'祈使句', level:1 },
+                    { id:'inversion', name:'倒装与 so/neither', level:3 },
+                    { id:'fixed_pattern', name:'固定句型', level:2 }
+                ]
+            },
+            {
+                id:'agreement', name:'一致与引语', children:[
+                    { id:'subj_verb_agree', name:'主谓一致', level:2 },
+                    { id:'reported_speech', name:'间接引语', level:3 }
+                ]
+            }
+        ]
+    },
+    {
+        id:'vocab', name:'词汇', children:[
+            {
+                id:'vocab_core', name:'核心词汇', children:[
+                    { id:'word_discrimination', name:'词义辨析', level:2 },
+                    { id:'word_formation', name:'词性转换', level:2 },
+                    { id:'collocation', name:'固定搭配与短语', level:2 }
+                ]
+            }
+        ]
+    },
+    {
+        id:'reading', name:'阅读', children:[
+            {
+                id:'reading_skill', name:'题型专项', children:[
+                    { id:'reading_detail', name:'细节理解', level:2 },
+                    { id:'reading_inference', name:'推理判断', level:3 },
+                    { id:'reading_main_idea', name:'主旨大意', level:3 }
+                ]
+            }
+        ]
+    },
+    {
+        id:'writing', name:'写作', children:[
+            {
+                id:'writing_skill', name:'常考文体', children:[
+                    { id:'writing_sentence', name:'句式表达与纠错', level:3 },
+                    { id:'writing_format', name:'应用文常识', level:2 }
+                ]
+            }
+        ]
+    }
+];
+
+// 扁平化：得到所有叶子知识点
+const KP_LIST = [];
+(function flatten(){
+    KNOWLEDGE_TREE.forEach(l1 => {
+        l1.children.forEach(l2 => {
+            l2.children.forEach(l3 => {
+                KP_LIST.push({ id:l3.id, name:l3.name, level:l3.level, path:l1.name+' / '+l2.name });
+            });
+        });
+    });
+})();
+const KP_TOTAL = KP_LIST.length;
+const KP_MAP = {};
+KP_LIST.forEach(k => KP_MAP[k.id] = k);
+
+// ============================================================
+// 二、题库 BANK：按知识点 id 组织
+//     格式：[题干, [选项A,B,C,D], 正确索引]
+// ============================================================
+const BANK = {};
+
+/* ---------- 动词时态 ---------- */
+BANK.present_simple = [
+["He ____ to school by bike every day.", ["go","goes","went","going"], 1],
+["My mother ____ TV after dinner.", ["watch","watchs","watches","watching"], 2],
+["____ your father work in a hospital?", ["Do","Does","Is","Are"], 1],
+["The sun ____ in the east.", ["rise","rises","rose","is rising"], 1],
+["Lucy ____ like playing basketball.", ["don't","doesn't","isn't","not"], 1],
+["Light ____ much faster than sound.", ["travel","travels","traveled","is traveling"], 1],
+["She usually ____ up at six thirty.", ["get","gets","got","getting"], 1],
+["____ they live in Beijing?", ["Do","Does","Are","Is"], 0],
+["The train ____ at 8:00 every morning.", ["leave","leaves","left","will leave"], 1],
+["My sister ____ English very well.", ["speak","speaks","speaking","spoke"], 1]
+];
+BANK.past_simple = [
+["I ____ a new book yesterday.", ["buy","buys","bought","buying"], 2],
+["They ____ to the park last Sunday.", ["go","goes","went","going"], 2],
+["____ you see the film last night?", ["Do","Did","Were","Are"], 1],
+["He ____ his homework an hour ago.", ["finishes","finished","has finished","will finish"], 1],
+["We ____ in Beijing in 2018.", ["live","lives","lived","living"], 2],
+["She ____ me a nice gift on my birthday.", ["gives","gave","given","giving"], 1],
+["The meeting ____ two days ago.", ["starts","started","has started","will start"], 1],
+["Who ____ the window yesterday?", ["break","breaks","broke","broken"], 2],
+["I ____ a letter to my friend last week.", ["write","writes","wrote","written"], 2],
+["It ____ heavily yesterday afternoon.", ["rain","rains","rained","raining"], 2]
+];
+BANK.future_simple = [
+["We ____ a picnic next Sunday.", ["have","had","will have","has"], 2],
+["____ you ____ free tomorrow?", ["Will; be","Do; be","Are; be","Will; are"], 0],
+["There ____ a meeting tomorrow afternoon.", ["is","will have","will be","has"], 2],
+["He ____ back in three days.", ["come","comes","came","will come"], 3],
+["I think it ____ rain soon.", ["will","is","was","does"], 0],
+["She ____ go to the party tonight.", ["will","is","was","did"], 0],
+["____ we go to the zoo this weekend?", ["Shall","Are","Do","Did"], 0],
+["My father ____ buy a new car next month.", ["is","was","will","did"], 2],
+["They ____ finish the work in two hours.", ["are","were","will","have"], 2],
+["Look at the dark clouds! It ____ rain.", ["will","is going to","was","shall"], 1]
+];
+BANK.past_future = [
+["He said he ____ go to Beijing the next day.", ["will","would","is","was"], 1],
+["She told me she ____ come to my birthday party.", ["will","would","can","may"], 1],
+["I knew it ____ be a fine day.", ["will","would","is","has"], 1],
+["They were sure they ____ win the match.", ["will","would","are","have"], 1],
+["He said there ____ be a test the next week.", ["will","would","is","was"], 1],
+["My mother promised she ____ buy me a bike.", ["will","would","can","shall"], 1],
+["We didn't know when he ____ arrive.", ["will","would","is","has"], 1],
+["She said she ____ help me with my English.", ["will","would","can","may"], 1],
+["I thought he ____ be late again.", ["will","would","is","has"], 1],
+["Tom said he ____ never forget that day.", ["will","would","is","has"], 1]
+];
+BANK.present_continuous = [
+["Look! It ____ heavily now.", ["rains","is raining","rained","rain"], 1],
+["Listen! Someone ____ at the door.", ["knock","knocks","is knocking","knocked"], 2],
+["We ____ an English class at the moment.", ["have","has","are having","had"], 2],
+["— Where is Tom? — He ____ basketball on the playground.", ["plays","is playing","played","play"], 1],
+["Be quiet! The baby ____.", ["sleeps","is sleeping","slept","sleep"], 1],
+["They ____ for the bus now.", ["wait","waits","are waiting","waited"], 2],
+["My father ____ a newspaper in the living room now.", ["reads","is reading","read","will read"], 1],
+["It's seven o'clock. I ____ breakfast.", ["have","has","am having","had"], 2],
+["— What are you doing? — I ____ my homework.", ["do","does","am doing","did"], 2],
+["The students ____ an exam in the classroom now.", ["have","are having","has","had"], 1]
+];
+BANK.past_continuous = [
+["What ____ you ____ at eight last night?", ["do; do","did; do","are; doing","were; doing"], 3],
+["I ____ my homework when he called me.", ["do","did","was doing","am doing"], 2],
+["My mother was cooking ____ I was reading.", ["when","while","if","because"], 1],
+["They ____ TV at that time yesterday.", ["watch","watched","were watching","are watching"], 2],
+["It ____ when we left the house.", ["rains","rained","was raining","is raining"], 2],
+["She ____ a letter at nine last night.", ["writes","wrote","was writing","is writing"], 2],
+["The boys ____ football on the playground at that moment.", ["play","played","were playing","are playing"], 2],
+["____ you ____ when the teacher came in?", ["Did; talk","Were; talking","Do; talk","Are; talking"], 1],
+["He ____ the piano while his sister ____.", ["played; sang","was playing; was singing","plays; sings","was playing; sang"], 1],
+["I ____ along the street when I met an old friend.", ["walk","walked","was walking","am walking"], 2]
+];
+BANK.present_perfect = [
+["I ____ to the Great Wall twice.", ["go","went","have been","have gone"], 2],
+["— Where is your father? — He ____ to Shanghai.", ["has been","has gone","went","goes"], 1],
+["I have lived here ____ 2015.", ["for","since","in","at"], 1],
+["He ____ for two years.", ["has died","died","has been dead","dies"], 2],
+["____ you ever ____ to Japan?", ["Did; go","Have; been","Have; gone","Are; going"], 1],
+["She ____ the book for a week.", ["has bought","bought","has had","buys"], 2],
+["We ____ each other since we were children.", ["know","knew","have known","will know"], 2],
+["I ____ my homework already.", ["finish","finished","have finished","will finish"], 2],
+["They ____ in this city for ten years.", ["live","lived","have lived","are living"], 2],
+["He ____ the film three times.", ["sees","saw","has seen","will see"], 2]
+];
+BANK.past_perfect = [
+["By the end of last year, I ____ 1000 English words.", ["learned","have learned","had learned","learn"], 2],
+["When I got to the station, the train ____.", ["left","has left","had left","leaves"], 2],
+["He said he ____ the book before.", ["read","has read","had read","reads"], 2],
+["By the time he was ten, he ____ three languages.", ["learns","learned","had learned","has learned"], 2],
+["The film ____ when we arrived at the cinema.", ["started","has started","had started","starts"], 2],
+["She ____ her homework before her mother came back.", ["finished","has finished","had finished","finishes"], 2],
+["I ____ never ____ such a beautiful place before.", ["have; seen","had; seen","did; see","was; seeing"], 1],
+["After he ____ the letter, he went to bed.", ["writes","wrote","had written","has written"], 2],
+["We ____ there for an hour before he came.", ["wait","waited","had waited","have waited"], 2],
+["By yesterday morning, they ____ the work.", ["finish","finished","had finished","have finished"], 2]
+];
+
+/* ---------- 动词语态 ---------- */
+BANK.passive_basic = [
+["The book ____ by him last year.", ["wrote","is written","was written","writes"], 2],
+["Rice ____ in the south of China.", ["grow","grows","is grown","are grown"], 2],
+["The classroom ____ every day.", ["cleans","cleaned","is cleaned","has cleaned"], 2],
+["This kind of car ____ in Japan.", ["makes","made","is made","are making"], 2],
+["The window ____ by Tom yesterday.", ["breaks","broke","was broken","is broken"], 2],
+["English ____ in many countries.", ["speaks","spoke","is spoken","are spoken"], 2],
+["The letter ____ by my sister yesterday morning.", ["writes","wrote","was written","is written"], 2],
+["These trees ____ last spring.", ["plant","planted","were planted","are planted"], 2],
+["The homework ____ by the students every day.", ["does","did","is done","are done"], 2],
+["The Great Wall ____ by millions of people every year.", ["visits","visited","is visited","are visiting"], 2]
+];
+BANK.passive_adv = [
+["The letter ____ by him now.", ["is writing","is being written","writes","was written"], 1],
+["The problem ____ yet.", ["isn't solved","hasn't been solved","wasn't solved","doesn't solve"], 1],
+["The work ____ by next Friday.", ["finishes","will finish","will be finished","is finishing"], 2],
+["The bike must ____ before you leave.", ["repair","be repaired","repairs","repairing"], 1],
+["The new bridge ____ next year.", ["builds","will build","will be built","is building"], 2],
+["The flowers ____ every morning.", ["water","are watered","is watered","watering"], 1],
+["A new hospital ____ in our town now.", ["is building","is being built","builds","was built"], 1],
+["The book can ____ for two weeks.", ["keep","be kept","kept","keeping"], 1],
+["Many tall buildings ____ in the city since 2010.", ["built","have built","have been built","were building"], 2],
+["The food ____ already, so we can eat now.", ["cooks","has cooked","has been cooked","is cooking"], 2]
+];
+
+/* ---------- 三大从句 ---------- */
+BANK.object_clause = [
+["Can you tell me ____ she will come to the party?", ["that","if","what","who"], 1],
+["He asked me ____ I had finished my homework.", ["that","if","what","who"], 1],
+["I don't know ____ he lives now.", ["where","what","that","which"], 0],
+["Do you know ____ the train will leave?", ["when","what","which","that"], 0],
+["Please tell me ____ book you like best.", ["what","which","that","who"], 1],
+["Could you tell me ____ the nearest hospital is?", ["where","what","that","how"], 0],
+["I wonder ____ he didn't come to school yesterday.", ["why","what","which","that"], 0],
+["She asked ____ I was doing at that time.", ["what","that","which","who"], 0],
+["I'm not sure ____ it will rain tomorrow.", ["that","whether","what","which"], 1],
+["He said ____ he was very busy that day.", ["if","that","what","whether"], 1]
+];
+BANK.attributive_clause = [
+["This is the girl ____ helps me every day.", ["who","which","what","whom"], 0],
+["This is the best film ____ I have ever seen.", ["which","who","that","whom"], 2],
+["The book ____ I bought yesterday is very useful.", ["who","which","whose","what"], 1],
+["The boy ____ father is a doctor is my classmate.", ["who","which","whose","that"], 2],
+["The old house ____ we live in is very small.", ["who","whose","which","what"], 2],
+["I know the man ____ is talking with your teacher.", ["which","who","whose","what"], 1],
+["Everything ____ he said is true.", ["which","that","who","what"], 1],
+["The city ____ I was born is very beautiful.", ["where","which","who","whose"], 0],
+["This is the school ____ I studied ten years ago.", ["where","which","who","what"], 0],
+["The girl ____ you met yesterday is my sister.", ["which","whose","whom","what"], 2]
+];
+BANK.adv_time = [
+["I ____ home until my mother came back.", ["didn't go","don't go","hasn't gone","doesn't go"], 0],
+["We were reading ____ the teacher came in.", ["while","when","if","because"], 1],
+["I'll tell him the news as soon as he ____ back.", ["come","comes","will come","came"], 1],
+["He didn't go to bed ____ he finished his work.", ["after","until","when","as"], 1],
+["____ I was walking in the street, I met an old friend.", ["While","Because","If","Though"], 0],
+["Please turn off the light ____ you leave the room.", ["before","until","since","while"], 0],
+["We have been good friends ____ we were children.", ["since","for","when","while"], 0],
+["____ he was a child, he liked drawing pictures.", ["When","While","Until","Since"], 0]
+];
+BANK.adv_condition = [
+["If it ____ tomorrow, we won't go out.", ["rain","rains","will rain","rained"], 1],
+["If you ____ hard, you will pass the exam.", ["study","studies","will study","studied"], 0],
+["We will go for a walk ____ it is fine tomorrow.", ["if","unless","though","because"], 0],
+["You will be late ____ you hurry up.", ["if","unless","when","because"], 1],
+["If he ____ free tomorrow, he will come to see us.", ["is","will be","was","has"], 0],
+["____ you don't work hard, you won't make progress.", ["If","Unless","Though","Because"], 0],
+["I'll tell you the answer if I ____ it.", ["know","knows","will know","knew"], 0],
+["____ it doesn't rain, we'll have the sports meeting.", ["If","Unless","Though","So"], 0]
+];
+BANK.adv_reason = [
+["He is ____ tired that he can't walk on.", ["so","such","too","very"], 0],
+["It was ____ a heavy box that nobody could move it.", ["so","such","too","very"], 1],
+["____ he was ill, he didn't go to school.", ["Because","So","But","And"], 0],
+["She was ____ excited that she couldn't fall asleep.", ["so","such","too","very"], 0],
+["____ everyone is here, let's begin our class.", ["Since","So","But","Though"], 0],
+["He didn't come to the party ____ he was busy.", ["because","so","but","though"], 0],
+["It is ____ an interesting book that I read it twice.", ["so","such","too","very"], 1],
+["____ you are here, you'd better stay for dinner.", ["Now that","So","But","Though"], 0]
+];
+BANK.adv_concession = [
+["____ he is young, he knows a lot.", ["Though","Because","So","And"], 0],
+["____ it rained hard, they went on working.", ["Although","Because","So","But"], 0],
+["He got up early ____ he could catch the first bus.", ["so that","so","because","though"], 0],
+["____ she is busy, she always helps others.", ["Though","Because","So","If"], 0],
+["We study hard ____ we can get good grades.", ["so that","so","because","if"], 0],
+["____ he is poor, he is very happy.", ["Although","Because","So","But"], 0],
+["Speak louder ____ everyone can hear you clearly.", ["so that","because","though","if"], 0],
+["____ it was very cold, he went out without a coat.", ["Though","Because","So","And"], 0]
+];
+
+/* ---------- 非谓语动词 ---------- */
+BANK.infinitive = [
+["It's important ____ English well.", ["learn","learning","to learn","learned"], 2],
+["He wants ____ a doctor when he grows up.", ["be","to be","being","is"], 1],
+["I decided ____ my teacher for help.", ["ask","asking","to ask","asked"], 2],
+["She asked me ____ quiet in the library.", ["keep","to keep","keeping","kept"], 1],
+["It took me two hours ____ my homework yesterday.", ["finish","finishing","to finish","finished"], 2],
+["I don't know ____ to do next.", ["what","how","which","when"], 0],
+["He is too young ____ to school by himself.", ["go","to go","going","went"], 1],
+["My mother told me ____ too much TV.", ["not watch","not to watch","don't watch","no watch"], 1]
+];
+BANK.gerund = [
+["We should avoid ____ the same mistake again.", ["make","making","to make","made"], 1],
+["He enjoys ____ to music in his free time.", ["listen","listening","to listen","listened"], 1],
+["Would you mind ____ the window? It's hot here.", ["open","opening","to open","opened"], 1],
+["She finished ____ the book last night.", ["read","reading","to read","reads"], 1],
+["____ in the morning is good for your health.", ["Swim","Swims","Swimming","Swam"], 2],
+["Thank you for ____ me with my English.", ["help","helping","to help","helped"], 1],
+["He is busy ____ his homework now.", ["do","doing","to do","did"], 1],
+["I'm looking forward to ____ you again soon.", ["see","seeing","saw","seen"], 1]
+];
+BANK.participle = [
+["The boy ____ under the tree is my brother.", ["stand","standing","stood","stands"], 1],
+["I heard someone ____ in the next room just now.", ["sing","singing","sang","sung"], 1],
+["This is an ____ book. I like it very much.", ["interest","interested","interesting","interests"], 2],
+["She was ____ in the story and read it twice.", ["interest","interested","interesting","interests"], 1],
+["____ in 1990, the school has a long history.", ["Build","Building","Built","Builds"], 2],
+["The ____ glass on the floor should be cleaned up.", ["break","breaking","broken","broke"], 2],
+["____ from the top of the hill, the city looks beautiful.", ["See","Seeing","Seen","Saw"], 2],
+["I found my bike ____ when I got outside.", ["steal","stealing","stolen","stole"], 2]
+];
+
+/* ---------- 情态动词 ---------- */
+BANK.modal_basic = [
+["He can ____ English very well.", ["speak","speaks","speaking","spoke"], 0],
+["____ I open the window? It's a bit hot.", ["Must","Need","May","Shall"], 2],
+["You ____ be quiet in the library.", ["can","may","must","need"], 2],
+["We ____ keep our classroom clean.", ["should","would","could","might"], 0],
+["____ you swim when you were five years old?", ["Can","Could","May","Must"], 1],
+["You ____ play football in the street. It's dangerous.", ["mustn't","needn't","may not","don't"], 0],
+["You ____ worry about me. I'm fine now.", ["mustn't","needn't","can't","shouldn't"], 1],
+["She ____ ride a bike when she was only six.", ["can","could","may","must"], 1]
+];
+BANK.modal_spec = [
+["The light is on. He ____ be at home.", ["can't","mustn't","must","need"], 2],
+["That ____ be Tom. He has gone to Beijing.", ["must","can't","mustn't","may"], 1],
+["He ____ be ill today, but I'm not quite sure.", ["must","might","can't","need"], 1],
+["You ____ be joking! That's impossible.", ["can","must","need","might"], 1],
+["She ____ be in the library. I saw her there just now.", ["must","can't","mustn't","needn't"], 0],
+["Someone is knocking at the door. It ____ be the postman.", ["must","can't","might","needn't"], 2],
+["He looks pale today. He ____ be very tired.", ["can't","must","mustn't","need"], 1],
+["It ____ be true. I simply don't believe it.", ["must","can't","might","should"], 1]
+];
+
+/* ---------- 形容词与副词 ---------- */
+BANK.comparative = [
+["Which is ____, the sun or the moon?", ["big","bigger","biggest","the biggest"], 1],
+["This book is ____ than that one.", ["interesting","more interesting","most interesting","the most interesting"], 1],
+["He runs ____ than me.", ["fast","faster","fastest","more fast"], 1],
+["My room is ____ than yours.", ["big","bigger","biggest","more big"], 1],
+["She is ____ at English than her brother.", ["good","better","best","well"], 1],
+["____ you work, ____ you'll get.", ["Harder; more","The harder; the more","Hard; much","The hard; the much"], 1],
+["This problem is ____ difficult than that one.", ["much","more","most","very"], 1],
+["Tom is ____ taller than Jim.", ["more","much","most","very"], 1]
+];
+BANK.superlative = [
+["She is ____ student in our class.", ["tall","taller","tallest","the tallest"], 3],
+["He runs ____ of all the boys.", ["fast","faster","fastest","most fast"], 2],
+["This is ____ book I have ever read.", ["interesting","more interesting","the most interesting","most interesting"], 2],
+["The Changjiang River is ____ river in China.", ["long","longer","longest","the longest"], 3],
+["Which is ____, the sun, the moon or the earth?", ["big","bigger","the biggest","biggest"], 2],
+["She sings ____ in her class.", ["well","better","best","the best"], 3],
+["This is ____ interesting film of the three.", ["the most","more","most","much"], 0],
+["Math is ____ difficult subject for me.", ["the most","more","most","much more"], 0]
+];
+BANK.equal_degree = [
+["This book is as ____ as that one.", ["interesting","more interesting","most interesting","interested"], 0],
+["He doesn't run so ____ as his brother.", ["fast","faster","fastest","more fast"], 0],
+["My bag is not as ____ as yours.", ["heavy","heavier","heaviest","more heavy"], 0],
+["She is as ____ as her mother now.", ["tall","taller","tallest","more tall"], 0],
+["This room is three times as ____ as that one.", ["big","bigger","biggest","the biggest"], 0],
+["English is not so ____ as I thought.", ["difficult","more difficult","most difficult","difficulter"], 0],
+["He speaks English as ____ as a native speaker.", ["good","well","better","best"], 1],
+["I don't have as ____ money as you have.", ["many","much","more","most"], 1]
+];
+BANK.adverb_usage = [
+["He is ____ late for school. He is always on time.", ["always","often","never","usually"], 2],
+["She sings very ____.", ["good","well","better","best"], 1],
+["Please listen to me ____ in class.", ["careful","carefully","care","careless"], 1],
+["He runs ____ fast in the race.", ["very","much","more","most"], 0],
+["It rained ____ last night.", ["heavy","heavily","heavier","heaviest"], 1],
+["— How ____ do you exercise? — Twice a week.", ["long","often","soon","much"], 1],
+["The teacher looked at us ____ and said nothing.", ["angry","angrily","anger","angrier"], 1],
+["He is ____ young to go to school by himself.", ["very","too","so","much"], 1]
+];
+
+/* ---------- 名词与代词 ---------- */
+BANK.noun_plural = [
+["There are three ____ on the table.", ["apple","apples","apple's","apples'"], 1],
+["I had two ____ of bread for breakfast.", ["piece","pieces","piece's","pieces'"], 1],
+["There are many ____ on the hill.", ["sheep","sheeps","sheepes","a sheep"], 0],
+["How many ____ are there in your family?", ["peoples","people","a people","people's"], 1],
+["The ____ are playing football on the playground.", ["child","childs","children","childrens"], 2],
+["I brush my ____ twice a day.", ["tooth","tooths","teeth","toothes"], 2],
+["There are five ____ working in the field.", ["man","mans","men","mens"], 2],
+["We need some ____ to make the soup.", ["tomato","tomatos","tomatoes","tomato's"], 2]
+];
+BANK.noun_possessive = [
+["This is ____ room. They live together.", ["Tom and Jim","Tom's and Jim","Tom and Jim's","Tom's and Jim's"], 2],
+["____ Day is on June 1st.", ["Children","Children's","Childrens'","Child's"], 1],
+["The ____ office is next to our classroom.", ["teacher","teachers","teacher's","teachers's"], 2],
+["These are ____ bags. One is Tom's, the other is Jim's.", ["Tom and Jim","Tom's and Jim","Tom and Jim's","Tom's and Jim's"], 3],
+["That is a friend of ____.", ["my father","my father's","my fathers","mine father"], 1],
+["____ mother works in a hospital.", ["Lucy","Lucys","Lucy's","Lucys'"], 2],
+["Today is ____ Day. Let's thank our teachers.", ["Teacher","Teachers","Teacher's","Teachers'"], 3],
+["He is a good friend of ____.", ["my","mine","me","I"], 1]
+];
+BANK.pronoun_personal = [
+["My pen is red. ____ is blue.", ["You","Your","Yours","Yourself"], 2],
+["____ name is Lily. What's ____?", ["My; you","Mine; your","My; yours","Mine; yours"], 2],
+["This book is not ____. It's hers.", ["my","mine","me","I"], 1],
+["____ is a kind teacher. We all like ____.", ["She; she","Her; her","She; her","Her; she"], 2],
+["Help ____ to some fish, children.", ["you","your","yours","yourselves"], 3],
+["— Whose bag is this? — It's ____.", ["her","hers","she","herself"], 1],
+["Mr. Li teaches ____ English this term.", ["we","our","us","ours"], 2],
+["____ classroom is bigger than ____.", ["Our; their","Ours; theirs","Our; theirs","Ours; their"], 2]
+];
+BANK.pronoun_indefinite = [
+["There isn't ____ milk in the glass.", ["some","any","a","many"], 1],
+["Would you like ____ tea?", ["some","any","many","a"], 0],
+["I have two books. One is English, ____ is Chinese.", ["other","the other","others","another"], 1],
+["____ of the students are here. Nobody is away.", ["All","Both","None","Neither"], 0],
+["There is ____ wrong with my bike.", ["something","anything","nothing","everything"], 0],
+["I don't have ____ to say about it.", ["something","anything","nothing","everything"], 1],
+["____ Tom and Jim like playing basketball.", ["Both","All","Neither","Either"], 0],
+["— Which do you like, tea or coffee? — ____. I like water.", ["Both","Either","Neither","None"], 2]
+];
+
+/* ---------- 冠词与数词 ---------- */
+BANK.article = [
+["This is ____ useful book for beginners.", ["a","an","the","/"], 0],
+["There is ____ apple on the desk.", ["a","an","the","/"], 1],
+["____ sun is much bigger than the earth.", ["A","An","The","/"], 2],
+["He is ____ honest boy.", ["a","an","the","/"], 1],
+["We have ____ breakfast at seven every day.", ["a","an","the","/"], 3],
+["She plays ____ piano very well.", ["a","an","the","/"], 2],
+["____ Greens are having dinner now.", ["A","An","The","/"], 2],
+["It took me ____ hour to finish the work.", ["a","an","the","/"], 1]
+];
+BANK.numeral = [
+["There are ____ students in our class.", ["fourty","forty","fourteenth","fortieth"], 1],
+["My birthday is on the ____ of May.", ["five","fifth","fiveth","fifteen"], 1],
+["About ____ of the students in our class are boys.", ["two third","two thirds","second three","two three"], 1],
+["He was born on ____.", ["July 5","July the five","five of July","the July five"], 0],
+["There are ____ people in the big hall.", ["hundred of","hundreds of","two hundreds","two hundred of"], 1],
+["____ of the students are from the countryside.", ["Three fifths","Three fifth","Third fifths","Three five"], 0],
+["The ____ lesson is very difficult.", ["nine","nineth","ninth","nineteen"], 2],
+["Please turn to Page ____ and read the text.", ["twenty","the twenty","twentieth","twentyth"], 0]
+];
+
+/* ---------- 介词与连词 ---------- */
+BANK.preposition = [
+["I get up ____ 6:30 every morning.", ["in","on","at","for"], 2],
+["We have an English class ____ Monday morning.", ["in","on","at","of"], 1],
+["My birthday is ____ May.", ["in","on","at","for"], 0],
+["He goes to school ____ bike every day.", ["by","on","with","in"], 0],
+["The book is ____ the desk.", ["in","on","at","of"], 1],
+["We usually have lunch ____ twelve o'clock.", ["in","on","at","for"], 2],
+["She is good ____ playing the piano.", ["at","in","on","with"], 0],
+["Japan is ____ the east of China.", ["in","on","to","at"], 2]
+];
+BANK.conj_coordinate = [
+["Both he ____ I are students.", ["and","or","but","so"], 0],
+["Neither he ____ I am wrong.", ["nor","or","and","but"], 0],
+["He is young, ____ he knows a lot.", ["and","but","or","so"], 1],
+["It was raining hard, ____ we stayed at home.", ["and","but","or","so"], 3],
+["Hurry up, ____ you'll be late for school.", ["and","but","or","so"], 2],
+["Work hard, ____ you'll pass the exam.", ["and","but","or","so"], 0],
+["I like English, ____ I don't like math.", ["and","but","or","so"], 1],
+["____ Tom ____ Jim have been to Beijing.", ["Either; or","Neither; nor","Both; and","Not only; but"], 2]
+];
+BANK.conj_subordinate = [
+["I don't know ____ he will come tomorrow.", ["if","that","what","which"], 0],
+["He was ____ tired that he fell asleep at once.", ["so","such","too","very"], 0],
+["We'll go for a picnic ____ it is fine tomorrow.", ["if","that","what","which"], 0],
+["I was reading ____ my mother came in.", ["when","while","if","because"], 0],
+["He didn't leave the office ____ the rain stopped.", ["until","when","while","because"], 0],
+["____ he is very busy, he always helps me.", ["Though","Because","So","But"], 0],
+["It is three years ____ I came to this city.", ["since","for","when","that"], 0],
+["____ you keep working hard, you will succeed.", ["If","Though","Because","Unless"], 0]
+];
+
+/* ---------- 特殊句型 ---------- */
+BANK.there_be = [
+["There ____ a book on the desk.", ["is","are","have","has"], 0],
+["There ____ two apples in the bag.", ["is","are","have","has"], 1],
+["There ____ a meeting tomorrow afternoon.", ["is","will have","will be","has"], 2],
+["There ____ some milk in the glass.", ["are","is","have","has"], 1],
+["____ there any students in the classroom?", ["Is","Are","Have","Has"], 1],
+["There ____ a pen and two books on the desk.", ["is","are","have","has"], 0],
+["There ____ no water in the bottle.", ["are","is","have","has"], 1],
+["There used to ____ a tall tree in front of the house.", ["be","is","was","have"], 0]
+];
+BANK.exclamatory = [
+["____ beautiful the flower is!", ["What","How","What a","How a"], 1],
+["____ fine day it is today!", ["How a","What a","How","What"], 1],
+["____ interesting the story is!", ["What","How","What an","How an"], 1],
+["____ clever boy he is!", ["What","What a","How","How a"], 1],
+["____ bad weather it is today!", ["What","What a","How","How a"], 0],
+["____ fast he runs in the race!", ["What","How","What a","How a"], 1],
+["____ exciting news it is!", ["What","What an","How","How an"], 0],
+["____ interesting books they are!", ["What","What a","How","How an"], 0]
+];
+BANK.question_tag = [
+["____ you like apples?", ["Do","Does","Are","Is"], 0],
+["____ is your name?", ["What","How","Where","When"], 0],
+["You are a student, ____?", ["aren't you","are you","don't you","do you"], 0],
+["He doesn't like fish, ____?", ["doesn't he","does he","is he","isn't he"], 1],
+["Let's go for a walk, ____?", ["will you","shall we","don't we","do we"], 1],
+["You can swim very well, ____?", ["can't you","can you","don't you","do you"], 0],
+["There is little water in the bottle, ____?", ["isn't there","is there","isn't it","is it"], 1],
+["____ do you go to school every day? — By bike.", ["What","How","When","Where"], 1]
+];
+BANK.imperative = [
+["____ quiet, please. The baby is sleeping.", ["Be","Is","Are","Being"], 0],
+["____ the light when you leave the room.", ["Turn off","Turning off","To turn off","Turned off"], 0],
+["____ in the river. It's very dangerous.", ["Not swim","Don't swim","No swim","Doesn't swim"], 1],
+["____ me your new book, please.", ["Show","Showing","To show","Shows"], 0],
+["Let's ____ to the park together this weekend.", ["go","to go","going","goes"], 0],
+["____ careful! The road is wet.", ["Be","Is","Are","Being"], 0],
+["____ late for school again.", ["Not be","Don't be","No be","Be not"], 1],
+["____ your hands before meals.", ["Wash","Washing","To wash","Washes"], 0]
+];
+BANK.inversion = [
+["— I like English very much. — ____.", ["So do I","So I do","So am I","I do so"], 0],
+["— He can't swim. — ____.", ["Neither can I","So can I","Neither I can","I can't neither"], 0],
+["— She is a good student. — ____.", ["So is he","So he is","Neither is he","He is so"], 0],
+["— I went to the zoo yesterday. — ____.", ["So did I","So I did","Neither did I","I did so"], 0],
+["— I don't like math at all. — ____.", ["Neither do I","So do I","Neither I do","I don't so"], 0],
+["____, he knows a lot about computers.", ["Young as he is","As he is young","Though young he is","Young although he is"], 0],
+["Never ____ such a beautiful place before.", ["I have seen","have I seen","I saw","did I saw"], 1],
+["— They have finished the work. — ____.", ["So have we","So we have","Neither have we","We have so"], 0]
+];
+BANK.fixed_pattern = [
+["It ____ me two hours to finish my homework.", ["spent","cost","took","paid"], 2],
+["I ____ two hours reading the book last night.", ["took","spent","cost","paid"], 1],
+["The dictionary ____ me twenty yuan.", ["took","spent","cost","paid"], 2],
+["It's very kind ____ you to help me.", ["for","of","to","with"], 1],
+["It's difficult ____ me to learn French well.", ["for","of","to","with"], 0],
+["He is too young ____ go to school alone.", ["to","for","that","not to"], 0],
+["I ____ twenty yuan for the new dictionary.", ["took","spent","cost","paid"], 3],
+["____ takes me half an hour to get to school.", ["It","That","This","What"], 0]
+];
+
+/* ---------- 一致与引语 ---------- */
+BANK.subj_verb_agree = [
+["She ____ Italian food very much.", ["like","likes","liking","is like"], 1],
+["Tom and I ____ good friends.", ["am","is","are","be"], 2],
+["Each of the students ____ a dictionary.", ["have","has","having","are having"], 1],
+["The news ____ very exciting.", ["are","is","were","have been"], 1],
+["Neither he nor I ____ wrong.", ["am","is","are","be"], 0],
+["Two hours ____ enough for the work.", ["are","is","were","have"], 1],
+["The number of the students in our class ____ forty.", ["are","is","were","have"], 1],
+["A number of students ____ playing basketball now.", ["are","is","was","has"], 0]
+];
+BANK.reported_speech = [
+["He said, 'I am busy.' → He said that ____ busy.", ["I am","he was","he is","I was"], 1],
+["She asked, 'Do you like it?' → She asked ____ I liked it.", ["that","if","what","whether"], 1],
+["He said, 'I will come.' → He said that he ____ come.", ["will","would","can","shall"], 1],
+["The teacher told us ____ quiet in class.", ["be","to be","being","were"], 1],
+["He said, 'I have finished.' → He said he ____ finished.", ["has","had","have","was"], 1],
+["She said she had gone there ____.", ["yesterday","the day before","tomorrow","today"], 1],
+["He asked me where I ____ the day before.", ["go","went","had gone","have gone"], 2],
+["Mother told me ____ too much time on games.", ["not spend","not to spend","don't spend","no spend"], 1]
+];
+
+/* ---------- 词汇 ---------- */
+BANK.word_discrimination = [
+["Please ____ me your new pen for a day.", ["borrow","lend","keep","bring"], 1],
+["I want to ____ a book from the school library.", ["borrow","lend","keep","take"], 0],
+["He ____ too much time playing computer games.", ["takes","spends","costs","pays"], 1],
+["Can you ____ the difference between the two words?", ["say","speak","tell","talk"], 2],
+["My father ____ me to school by car every morning.", ["brings","takes","carries","fetches"], 1],
+["She ____ a beautiful red dress at the party.", ["wore","put on","dressed","was dressing"], 0],
+["Please ____ the light before you go to bed.", ["close","turn off","shut","turn down"], 1],
+["I ____ my homework at home this morning.", ["forgot","left","lost","missed"], 1]
+];
+BANK.word_formation = [
+["He is a ____. He works on a farm.", ["farm","farmer","farming","farms"], 1],
+["We should keep ____ in the library.", ["silence","silent","silently","silents"], 1],
+["She sings very ____ in the concert.", ["beautiful","beautifully","beauty","beautify"], 1],
+["His ____ in the exam made us very happy.", ["succeed","success","successful","successfully"], 1],
+["The story is very ____ and I like it.", ["interest","interested","interesting","interestingly"], 2],
+["It is ____ to swim in this deep river.", ["danger","dangerous","dangerously","endanger"], 1],
+["He wants to be a ____ when he grows up.", ["science","scientist","scientific","scientifically"], 1],
+["Thank you for your ____ to us.", ["kind","kindly","kindness","kinder"], 2]
+];
+BANK.collocation = [
+["Please ____ the light. It's too dark here.", ["turn on","turn up","turn down","turn off"], 0],
+["He ____ up late yesterday morning.", ["gets","got","get","getting"], 1],
+["We should ____ good care of our eyes.", ["take","make","get","have"], 0],
+["I'm looking ____ to hearing from you soon.", ["for","forward","after","up"], 1],
+["She ____ an active part in the sports meeting.", ["took","takes","take","taking"], 0],
+["Don't worry ____ your coming exam.", ["about","of","for","with"], 0],
+["He is very good ____ telling stories.", ["at","in","on","with"], 0],
+["Please hand ____ your homework on time.", ["in","on","up","out"], 0]
+];
+
+/* ---------- 阅读 ---------- */
+BANK.reading_detail = [
+["Tom gets up at six every morning and rides a bike to school. — What time does Tom get up?", ["At six","At seven","At eight","At nine"], 0],
+["Lucy went to the zoo with her parents last Sunday. — When did Lucy go to the zoo?", ["Last Sunday","Last Saturday","Yesterday","Last Monday"], 0],
+["The library is open from 8:00 a.m. to 5:00 p.m. — How long is it open a day?", ["8 hours","9 hours","10 hours","7 hours"], 1],
+["Mike is 13 years old and his sister is two years younger. — How old is Mike's sister?", ["11","13","15","12"], 0],
+["It takes Mary twenty minutes to walk to school. — How does Mary go to school?", ["On foot","By bus","By bike","By car"], 0],
+["There are 40 students in Class 2 and 22 of them are boys. — How many girls are there?", ["18","22","40","20"], 0],
+["The book costs 25 yuan and the pen costs 8 yuan. — How much are they together?", ["32 yuan","33 yuan","35 yuan","30 yuan"], 1],
+["Jim has breakfast at 7:00 and leaves home at 7:30. — When does Jim leave home?", ["At 7:00","At 7:30","At 8:00","At 6:30"], 1]
+];
+BANK.reading_inference = [
+["The ground is wet and people are carrying umbrellas. — What can we infer?", ["It has rained.","It is sunny.","It is snowing hard.","It is very windy."], 0],
+["Tom looks pale and keeps coughing. — What can we infer?", ["He may be ill.","He is very happy.","He is quite rich.","He is busy."], 0],
+["All the shops are closed and the streets are empty. — What time is it probably?", ["Midnight","Noon","Morning","Afternoon"], 0],
+["Mary got full marks in the exam again. — What can we infer?", ["She studies hard.","She is lazy.","She was ill.","She was late."], 0],
+["The boy is wearing a thick coat and gloves. — What's the weather probably like?", ["Very cold","Very hot","Rainy","Warm"], 0],
+["He ran into the classroom out of breath. — What can we infer?", ["He hurried here.","He was sleeping.","He was angry.","He was sad."], 0]
+];
+BANK.reading_main_idea = [
+["The passage tells us: eat well, exercise often and sleep enough. — What is the main idea?", ["How to keep healthy","How to study","How to cook","How to travel"], 0],
+["The text is about the long history of the Great Wall. — What is the best title?", ["The Great Wall","Chinese food","Modern life","School life"], 0],
+["The passage describes different ways to protect our environment. — What is it mainly about?", ["Protecting the environment","Making money","Learning English","Playing sports"], 0],
+["The story is about a boy who never gives up and finally wins. — What can we learn?", ["Never give up","Be lazy","Run fast","Stay quiet"], 0],
+["The article introduces four famous museums in London. — What is the main idea?", ["Museums in London","Schools in London","Food in London","Parks in London"], 0],
+["The writer tells us why reading every day is important. — What is the topic?", ["The importance of reading","How to write","How to speak","How to sing"], 0]
+];
+
+/* ---------- 写作 ---------- */
+BANK.writing_sentence = [
+["Which sentence is right?", ["He go to school by bus.","He goes to school by bus.","He going to school by bus.","He gone to school by bus."], 1],
+["Which sentence is right?", ["I am agree with you.","I agree with you.","I agreeing with you.","I am agree you."], 1],
+["Which sentence is right?", ["She don't like coffee.","She doesn't likes coffee.","She doesn't like coffee.","She not like coffee."], 2],
+["Which sentence is right?", ["There have many books.","There is many books.","There are many books.","There has many books."], 2],
+["Which sentence is right?", ["I very like English.","I like English very much.","I like very English.","Very I like English."], 1],
+["Which sentence is right?", ["He is more taller than me.","He is much taller than me.","He is more tall than me.","He is tall than me."], 1]
+];
+BANK.writing_format = [
+["英文书信开头常用的称呼是：", ["Dear Tom,","Hello Tom!","Hi Tom.","Tom:"], 0],
+["英文书信结尾常用的落款是：", ["Yours,","Your,","You,","Yourselves,"], 0],
+["写英文通知时一般不必写：", ["时间","地点","活动内容","天气预报"], 3],
+["写英文日记通常使用的时态是：", ["一般过去时","一般现在时","一般将来时","现在完成时"], 0],
+["英文书信中署名一般写在：", ["信的右下角","信的左上角","开头第一行","标题位置"], 0],
+["写请假条时不需要写：", ["请假原因","请假时间","自己的名字","老师的家庭住址"], 3]
+];
+
+
+// ============================================================
+// 三、出题引擎：30 组基础 + 覆盖自检后自动补组
+// ============================================================
+const BASE_GROUP_COUNT = 30;
+const QUESTIONS_PER_GROUP = 15;
+const MAX_GROUP_COUNT = 60;
+
+const GROUP_LEVELS = [
+    '基础入门篇','基础巩固篇','基础提升篇',
+    '进阶入门篇','进阶巩固篇','进阶提升篇',
+    '语法专项篇','从句专项篇','时态专项篇','词法专项篇',
+    '综合进阶1','综合进阶2','综合进阶3','综合进阶4','综合进阶5',
+    '难点突破1','难点突破2','难点突破3','难点突破4','难点突破5',
+    '冲刺提升1','冲刺提升2','冲刺提升3','冲刺提升4','冲刺提升5',
+    '全真模拟1','全真模拟2','全真模拟3','全真模拟4','终极挑战'
+];
+
+// 固定种子随机数，保证每次打开题目完全一致（存档不会错乱）
+function makeRnd(seed){
+    let a = seed >>> 0;
+    return function(){
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function shuffleArr(arr, rnd){
+    for(let i = arr.length - 1; i > 0; i--){
+        const j = Math.floor(rnd() * (i + 1));
+        const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+}
+
+// 出题状态
+const pickState = { used: {} };           // pointId -> 已取用次数
+const usedQuestionKeys = new Set();       // 'pointId#index' 已出现过的题目，用于保证不重复出同一道
+let extraGroupCount = 0;
+
+// 取一道题：优先取「从未出现过」的题；题库耗尽则取使用次数最少的
+function takeQuestion(pid, rnd){
+    const list = BANK[pid];
+    if(!list || list.length === 0) return null;
+    const fresh = [];
+    for(let i = 0; i < list.length; i++){
+        if(!usedQuestionKeys.has(pid + '#' + i)) fresh.push(i);
+    }
+    let idx;
+    if(fresh.length > 0){
+        idx = fresh[Math.floor(rnd() * fresh.length)];
+        usedQuestionKeys.add(pid + '#' + idx);
+    } else {
+        idx = (pickState.used[pid] || 0) % list.length;
+    }
+    pickState.used[pid] = (pickState.used[pid] || 0) + 1;
+
+    const item = list[idx];
+    return {
+        q: item[0],
+        options: item[1].slice(),
+        answer: item[2],
+        point: KP_MAP[pid] ? KP_MAP[pid].name : pid,
+        pid: pid
+    };
+}
+
+// 依难度分层取知识点池
+function poolForGroup(g){
+    const maxLevel = g < 10 ? 1 : (g < 20 ? 2 : 3);
+    const pool = KP_LIST.filter(k => (BANK[k.id] && BANK[k.id].length > 0) && k.level <= maxLevel);
+    return pool.length > 0 ? pool : KP_LIST.filter(k => BANK[k.id] && BANK[k.id].length > 0);
+}
+
+// 生成基础 30 组
+function buildBaseGroups(){
+    const rnd = makeRnd(20261017);
+    KP_LIST.forEach(k => pickState.used[k.id] = 0);
+    const result = [];
+    for(let g = 0; g < BASE_GROUP_COUNT; g++){
+        const pool = poolForGroup(g);
+        const picks = [];
+        const start = (g * QUESTIONS_PER_GROUP) % pool.length;
+        for(let i = 0; i < QUESTIONS_PER_GROUP; i++){
+            picks.push(pool[(start + i) % pool.length].id);
+        }
+        shuffleArr(picks, rnd);
+        const questions = [];
+        picks.forEach(pid => {
+            const q = takeQuestion(pid, rnd);
+            if(q) questions.push(q);
+        });
+        result.push({
+            id: g,
+            level: GROUP_LEVELS[g] || ('综合练习' + (g + 1)),
+            questions: questions
+        });
+    }
+    return result;
+}
+
+// 统计已覆盖 / 未覆盖的知识点
+function getCoverage(){
+    const covered = new Set();
+    groups.forEach(g => g.questions.forEach(q => { if(q.pid) covered.add(q.pid); }));
+    const missing = KP_LIST.filter(k => !covered.has(k.id));
+    return { covered, missing, total: KP_TOTAL, coveredCount: covered.size };
+}
+
+// 补一组：先补未覆盖点，再用「从未出现过的新题」补足 15 题（同一道题绝不重复）
+function addExtraGroup(missing){
+    const rnd = makeRnd(98765 + groups.length * 131);
+    const gIndex = groups.length;
+    extraGroupCount++;
+    const questions = [];
+    const inGroup = new Set();
+
+    // 1) 先把没覆盖到的知识点各来一道（严格不超过 15 题，多的留给下一组）
+    for(const k of missing){
+        if(questions.length >= QUESTIONS_PER_GROUP) break;
+        const q = takeQuestion(k.id, rnd);
+        if(q && !inGroup.has(q.pid + '|' + q.q)){
+            inGroup.add(q.pid + '|' + q.q);
+            questions.push(q);
+        }
+    }
+
+    // 2) 剩余名额：从题库里挑「从未出现过」的题目补足（可重复知识点，但绝不是同一道题）
+    if(questions.length < QUESTIONS_PER_GROUP){
+        const freshPool = [];
+        KP_LIST.forEach(k => {
+            const list = BANK[k.id] || [];
+            for(let i = 0; i < list.length; i++){
+                const key = k.id + '#' + i;
+                if(!usedQuestionKeys.has(key)) freshPool.push(k.id + '#' + i);
+            }
+        });
+        shuffleArr(freshPool, rnd);
+        for(const key of freshPool){
+            if(questions.length >= QUESTIONS_PER_GROUP) break;
+            const [pid, i] = key.split('#');
+            const item = BANK[pid][Number(i)];
+            const sig = pid + '|' + item[0];
+            if(inGroup.has(sig)) continue;
+            usedQuestionKeys.add(key);
+            pickState.used[pid] = (pickState.used[pid] || 0) + 1;
+            inGroup.add(sig);
+            questions.push({
+                q: item[0],
+                options: item[1].slice(),
+                answer: item[2],
+                point: KP_MAP[pid] ? KP_MAP[pid].name : pid,
+                pid: pid
+            });
+        }
+    }
+
+    // 3) 题库彻底耗尽时，退化为取练习次数最少的题（保证组内仍不重复）
+    let guard = 0;
+    while(questions.length < QUESTIONS_PER_GROUP && guard++ < 500){
+        const sorted = KP_LIST.slice().sort((a,b) => (pickState.used[a.id]||0) - (pickState.used[b.id]||0));
+        const k = sorted[0];
+        const q = takeQuestion(k.id, rnd);
+        if(!q) break;
+        if(inGroup.has(q.pid + '|' + q.q)) continue;
+        inGroup.add(q.pid + '|' + q.q);
+        questions.push(q);
+    }
+
+    shuffleArr(questions, rnd);
+    groups.push({
+        id: gIndex,
+        level: '补充挑战篇 ' + extraGroupCount,
+        questions: questions,
+        extra: true
+    });
+}
+
+// 覆盖自检：没覆盖完就一直加组，直到全覆盖或达到上限
+function ensureFullCoverage(){
+    let guard = 0;
+    let added = 0;
+    while(guard++ < 40){
+        const info = getCoverage();
+        if(info.missing.length === 0) break;
+        if(groups.length >= MAX_GROUP_COUNT) break;
+        addExtraGroup(info.missing);
+        added++;
+    }
+    return added;
+}
+
+const groups = buildBaseGroups();
+const extraAdded = ensureFullCoverage();
+let TOTAL_GROUPS = groups.length;
+
+// ============================================================
+// 四、成就配置
+// ============================================================
+const achievementConfig = [
+    { id:'first', name:'初出茅庐', desc:'完成第一道题', icon:'🌟' },
+    { id:'group1', name:'首战告捷', desc:'完成第1组题目', icon:'🎯' },
+    { id:'group5', name:'渐入佳境', desc:'解锁5组题目', icon:'📈' },
+    { id:'group10', name:'半程勇士', desc:'解锁10组题目', icon:'⚡' },
+    { id:'group20', name:'进阶达人', desc:'解锁20组题目', icon:'🏅' },
+    { id:'full', name:'通关大师', desc:'完成全部组题目', icon:'👑' },
+    { id:'combo10', name:'十连超神', desc:'连续答对10题', icon:'💥' },
+    { id:'highscore', name:'纪录突破', desc:'打破历史最高分', icon:'🎯' }
+];
+
+// ============================================================
+// 五、游戏状态
+// ============================================================
+let score = 0, combo = 0, maxCombo = 0, totalCorrect = 0, totalWrong = 0;
+let currentGroup = 0, currentQuestionIndex = 0, answered = false;
+let answeredData = {}, wrongBook = [], unlockedAchievements = [], highScore = 0;
+let maxUnlockedGroup = 0;
+const SAVE_KEY = 'englishQuest_kp_v1';
+
+// ============================================================
+// 六、初始化
+// ============================================================
+function init(){
+    loadSave();
+    renderGrid();
+    updateGroupBar();
+    updateStatus();
+    renderAchievements();
+    if(extraAdded > 0){
+        showUnlockTip(`📦 30组未覆盖全部知识点，已自动生成 ${extraAdded} 组补充题（共 ${TOTAL_GROUPS} 组）`, true);
+    }
+    var bm = document.getElementById('bootMsg');
+    if(bm) bm.style.display = 'none';
+}
+
+// iPad / iOS 上 localStorage 可能被禁用（无痕浏览、本地文件打开），做安全降级到内存
+const safeStore = {
+    mem: {},
+    get(k){ try { return localStorage.getItem(k); } catch(e) { return this.mem[k] || null; } },
+    set(k, v){ try { localStorage.setItem(k, v); } catch(e) { this.mem[k] = v; } }
+};
+
+function loadSave(){
+    let data = null;
+    try {
+        const save = safeStore.get(SAVE_KEY);
+        if(save) data = JSON.parse(save);
+    } catch(e) { data = null; }
+
+    if(data){
+        highScore = data.highScore || 0;
+        wrongBook = data.wrongBook || [];
+        unlockedAchievements = data.unlockedAchievements || [];
+        answeredData = data.answeredData || {};
+        maxUnlockedGroup = Math.min(data.maxUnlockedGroup || 0, TOTAL_GROUPS - 1);
+        maxCombo = data.maxCombo || 0;
+        score = data.score || 0;
+        const list = Object.values(answeredData);
+        totalCorrect = list.filter(i => i.correct).length;
+        totalWrong = list.filter(i => !i.correct).length;
+    }
+}
+
+function saveProgress(){
+    try {
+        safeStore.set(SAVE_KEY, JSON.stringify({
+            highScore, wrongBook, unlockedAchievements, answeredData, maxCombo, score, maxUnlockedGroup
+        }));
+    } catch(e) { /* 存储不可用时忽略，不影响答题 */ }
+}
+
+function renderGrid(){
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    const qs = groups[currentGroup].questions;
+    for(let i = 0; i < qs.length; i++){
+        const key = `${currentGroup}-${i}`;
+        const btn = document.createElement('button');
+        btn.className = 'grid-item';
+        btn.innerText = i + 1;
+        btn.onclick = () => openQuiz(i);
+        if(answeredData[key]){
+            btn.classList.add('done');
+            if(answeredData[key].correct){
+                btn.classList.add('correct');
+                btn.innerHTML = `${i+1}<span class="star">⭐</span>`;
+            } else {
+                btn.classList.add('wrong');
+            }
+        }
+        grid.appendChild(btn);
+    }
+}
+
+function updateGroupBar(){
+    document.getElementById('currentGroupText').innerText = currentGroup + 1;
+    const info = document.getElementById('groupLevelText');
+    info.innerText = groups[currentGroup].level;
+    info.className = 'sub' + (groups[currentGroup].extra ? ' extra' : '');
+    document.getElementById('prevGroup').disabled = currentGroup <= 0;
+    document.getElementById('nextGroup').disabled = currentGroup >= maxUnlockedGroup;
+}
+
+function updateStatus(){
+    const totalDone = totalCorrect + totalWrong;
+    const totalQuestions = TOTAL_GROUPS * QUESTIONS_PER_GROUP;
+    const progress = Math.round((totalDone / totalQuestions) * 100);
+    const cov = getCoverage();
+    const covEl = document.getElementById('coverText');
+    covEl.innerText = `${cov.coveredCount}/${cov.total}`;
+    covEl.className = 'status-value ' + (cov.missing.length === 0 ? 'cover-ok' : 'cover-no');
+
+    document.getElementById('scoreText').innerText = score;
+    document.getElementById('unlockText').innerText = `${maxUnlockedGroup + 1}/${TOTAL_GROUPS}组`;
+    document.getElementById('progressText').innerText = `${progress}%`;
+    document.getElementById('highScoreText').innerText = highScore;
+}
+
+function switchGroup(delta){
+    const n = currentGroup + delta;
+    if(n < 0 || n > maxUnlockedGroup) return;
+    currentGroup = n;
+    renderGrid();
+    updateGroupBar();
+}
+
+function checkGroupUnlock(){
+    const qs = groups[currentGroup].questions;
+    let allDone = true;
+    for(let i = 0; i < qs.length; i++){
+        if(!answeredData[`${currentGroup}-${i}`]) { allDone = false; break; }
+    }
+    if(allDone && currentGroup === maxUnlockedGroup && maxUnlockedGroup < TOTAL_GROUPS - 1){
+        maxUnlockedGroup++;
+        showUnlockTip(`🎉 第${maxUnlockedGroup + 1}组已解锁！「${groups[maxUnlockedGroup].level}」，继续挑战吧`);
+        updateGroupBar(); updateStatus(); saveProgress(); checkAchievements();
+        return true;
+    }
+    return false;
+}
+
+function showUnlockTip(text, warn){
+    const tip = document.getElementById('unlockTip');
+    tip.className = 'unlock-tip' + (warn ? ' warn' : '');
+    tip.innerText = text;
+    tip.style.display = 'block';
+    setTimeout(() => { tip.style.display = 'none'; }, 4000);
+}
+
+// ============================================================
+// 七、答题逻辑
+// ============================================================
+function openQuiz(index){
+    const key = `${currentGroup}-${index}`;
+    if(answeredData[key]) return;
+    currentQuestionIndex = index;
+    answered = false;
+    const q = groups[currentGroup].questions[index];
+    document.getElementById('questionText').innerText = q.q;
+    document.getElementById('questionPoint').innerText = '📌 ' + q.point;
+    const optBox = document.getElementById('optionsBox');
+    optBox.innerHTML = '';
+    const fb = document.getElementById('feedbackLine');
+    fb.innerText = ''; fb.className = 'feedback-line';
+    q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = String.fromCharCode(65 + i) + '. ' + opt;
+        btn.onclick = () => checkAnswer(i);
+        optBox.appendChild(btn);
+    });
+    document.getElementById('quizModal').style.display = 'flex';
+}
+
+function checkAnswer(optionIndex){
+    if(answered) return;
+    answered = true;
+    const btns = document.querySelectorAll('.option-btn');
+    const q = groups[currentGroup].questions[currentQuestionIndex];
+    const correct = q.answer;
+    const isCorrect = optionIndex === correct;
+    const feedback = document.getElementById('feedbackLine');
+    const key = `${currentGroup}-${currentQuestionIndex}`;
+
+    if(isCorrect){
+        btns[optionIndex].classList.add('correct');
+        combo++;
+        if(combo > maxCombo) maxCombo = combo;
+        const addScore = 10 + (combo - 1) * 2;
+        score += addScore;
+        totalCorrect++;
+        feedback.className = 'feedback-line correct';
+        feedback.innerText = combo >= 2 ? `✅ 正确！连击 x${combo} +${addScore}分` : `✅ 回答正确！+${addScore}分`;
+        answeredData[key] = { correct:true, point:q.point };
+        wrongBook = wrongBook.filter(item => item.key !== key);
+    } else {
+        btns[optionIndex].classList.add('wrong');
+        btns[correct].classList.add('correct');
+        combo = 0;
+        totalWrong++;
+        feedback.className = 'feedback-line wrong';
+        feedback.innerText = `❌ 答错啦！正确答案：${String.fromCharCode(65+correct)}  知识点：${q.point}`;
+        answeredData[key] = { correct:false, point:q.point };
+        if(!wrongBook.find(item => item.key === key)){
+            wrongBook.push({ key, q:q.q, point:q.point, yourAnswer:q.options[optionIndex], rightAnswer:q.options[correct] });
+        }
+    }
+    checkAchievements();
+    checkGroupUnlock();
+    renderGrid();
+    updateStatus();
+    saveProgress();
+}
+
+function closeQuiz(){
+    document.getElementById('quizModal').style.display = 'none';
+}
+
+// ============================================================
+// 八、成就系统
+// ============================================================
+function checkAchievements(){
+    const totalDone = totalCorrect + totalWrong;
+    if(totalDone === 1 && !unlockedAchievements.includes('first')) unlockedAchievements.push('first');
+    if(isGroupDone(0) && !unlockedAchievements.includes('group1')) unlockedAchievements.push('group1');
+    if(maxUnlockedGroup >= 4 && !unlockedAchievements.includes('group5')) unlockedAchievements.push('group5');
+    if(maxUnlockedGroup >= 9 && !unlockedAchievements.includes('group10')) unlockedAchievements.push('group10');
+    if(maxUnlockedGroup >= 19 && !unlockedAchievements.includes('group20')) unlockedAchievements.push('group20');
+    if(maxUnlockedGroup >= TOTAL_GROUPS - 1 && isGroupDone(TOTAL_GROUPS - 1) && !unlockedAchievements.includes('full')) unlockedAchievements.push('full');
+    if(combo >= 10 && !unlockedAchievements.includes('combo10')) unlockedAchievements.push('combo10');
+    if(score > highScore && score > 0){
+        highScore = score;
+        if(!unlockedAchievements.includes('highscore')) unlockedAchievements.push('highscore');
+    }
+}
+
+function isGroupDone(gi){
+    const qs = groups[gi] ? groups[gi].questions : [];
+    for(let i = 0; i < qs.length; i++){
+        if(!answeredData[`${gi}-${i}`]) return false;
+    }
+    return qs.length > 0;
+}
+
+function renderAchievements(){
+    const box = document.getElementById('achievementList');
+    box.innerHTML = '';
+    achievementConfig.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'achievement-card' + (unlockedAchievements.includes(item.id) ? ' unlocked' : '');
+        card.innerHTML = `<div class="achievement-icon">${item.icon}</div>
+            <div class="achievement-name">${item.name}</div>
+            <div class="achievement-desc">${item.desc}</div>`;
+        box.appendChild(card);
+    });
+}
+
+// ============================================================
+// 九、知识图谱 + 覆盖率
+// ============================================================
+function calcPointRate(pointName){
+    let total = 0, correct = 0;
+    for(const key in answeredData){
+        const item = answeredData[key];
+        if(item.point === pointName){
+            total++;
+            if(item.correct) correct++;
+        }
+    }
+    if(total === 0) return { rate:0, total:0, status:'none' };
+    const rate = Math.round((correct / total) * 100);
+    let status = 'weak';
+    if(rate === 100) status = 'excellent';
+    else if(rate >= 80) status = 'good';
+    else if(rate >= 60) status = 'normal';
+    return { rate, total, status };
+}
+
+// 统计每个知识点在题库中被安排了多少道题
+function countPointInGroups(pid){
+    let n = 0;
+    groups.forEach(g => g.questions.forEach(q => { if(q.pid === pid) n++; }));
+    return n;
+}
+
+function renderCoverPanel(){
+    const cov = getCoverage();
+    const panel = document.getElementById('coverPanel');
+    const pct = Math.round((cov.coveredCount / cov.total) * 100);
+    let html = `
+        <div class="cover-head">
+            <span>知识点覆盖率</span>
+            <span>${cov.coveredCount} / ${cov.total}（${pct}%）</span>
+        </div>
+        <div class="cover-bar"><div class="cover-bar-fill" style="width:${pct}%"></div></div>
+    `;
+    if(cov.missing.length === 0){
+        html += `<div class="chip-wrap"><span class="chip ok">✅ 全部 ${cov.total} 个知识点已被题库覆盖</span>
+                 <span class="chip ok">共 ${TOTAL_GROUPS} 组 / ${TOTAL_GROUPS * QUESTIONS_PER_GROUP} 题</span></div>`;
+    } else {
+        html += `<div class="chip-wrap">` + cov.missing.map(k => `<span class="chip">未覆盖：${k.name}</span>`).join('') + `</div>`;
+    }
+    panel.innerHTML = html;
+}
+
+function showKnowledgeTree(){
+    renderCoverPanel();
+    const container = document.getElementById('treeContainer');
+    container.innerHTML = '';
+    const cov = getCoverage();
+
+    KNOWLEDGE_TREE.forEach(l1 => {
+        const d1 = document.createElement('div');
+        d1.className = 'tree-level1';
+        const b1 = document.createElement('button');
+        b1.className = 'tree-btn';
+        b1.innerHTML = `${l1.name}<span class="arrow">▶</span>`;
+        const c1 = document.createElement('div');
+        c1.className = 'tree-children';
+        b1.onclick = () => toggleTree(b1, c1);
+        d1.appendChild(b1);
+
+        l1.children.forEach(l2 => {
+            const d2 = document.createElement('div');
+            d2.className = 'tree-level2';
+            const b2 = document.createElement('button');
+            b2.className = 'tree-btn level2';
+            b2.innerHTML = `${l2.name}<span class="arrow">▶</span>`;
+            const c2 = document.createElement('div');
+            c2.className = 'tree-children';
+            b2.onclick = () => toggleTree(b2, c2);
+            d2.appendChild(b2);
+
+            l2.children.forEach(l3 => {
+                const stat = calcPointRate(l3.name);
+                const isCovered = cov.covered.has(l3.id);
+                const n = countPointInGroups(l3.id);
+                const row = document.createElement('div');
+                row.className = 'tree-level3';
+                row.innerHTML = `
+                    <span class="cover-dot ${isCovered ? 'yes' : 'no'}" title="${isCovered ? '已覆盖' : '未覆盖'}"></span>
+                    <span class="name">${l3.name}</span>
+                    <span class="tree-badge lv${l3.level}">${l3.level === 1 ? '基础' : (l3.level === 2 ? '进阶' : '提升')}</span>
+                    <span class="tree-badge">${n}题</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${stat.status}" style="width:${stat.total === 0 ? 0 : stat.rate}%"></div>
+                    </div>
+                    <span class="progress-text">${stat.total === 0 ? '未练习' : stat.rate + '%'}</span>
+                `;
+                c2.appendChild(row);
+            });
+
+            d2.appendChild(c2);
+            c1.appendChild(d2);
+        });
+
+        d1.appendChild(c1);
+        container.appendChild(d1);
+    });
+
+    document.getElementById('treeModal').style.display = 'flex';
+}
+
+function toggleTree(btn, childrenDom){
+    btn.classList.toggle('open');
+    childrenDom.classList.toggle('open');
+}
+
+function closeTree(){
+    document.getElementById('treeModal').style.display = 'none';
+}
+
+// 手动触发：检查覆盖，未覆盖完就加组
+function manualFillGroups(){
+    const before = getCoverage();
+    if(before.missing.length === 0){
+        alert(`✅ 已覆盖全部 ${before.total} 个知识点，无需补组。\n当前共 ${TOTAL_GROUPS} 组 / ${TOTAL_GROUPS * QUESTIONS_PER_GROUP} 道题。`);
+        return;
+    }
+    const added = ensureFullCoverage();
+    TOTAL_GROUPS = groups.length;
+    updateStatus();
+    renderCoverPanel();
+    showKnowledgeTree();
+    const after = getCoverage();
+    showUnlockTip(`➕ 已新增 ${added} 组补充题，当前覆盖 ${after.coveredCount}/${after.total}，共 ${TOTAL_GROUPS} 组`, true);
+}
+
+// ============================================================
+// 十、总结 / 错题本 / 重置
+// ============================================================
+function showSummary(){
+    const totalDone = totalCorrect + totalWrong;
+    const accuracy = totalDone === 0 ? 0 : Math.round((totalCorrect / totalDone) * 100);
+    const cov = getCoverage();
+
+    document.getElementById('overviewContent').innerHTML = `
+        <div class="summary-row"><span class="label">已完成题目</span><span class="value">${totalDone} / ${TOTAL_GROUPS * QUESTIONS_PER_GROUP}</span></div>
+        <div class="summary-row"><span class="label">已解锁组</span><span class="value">${maxUnlockedGroup + 1} / ${TOTAL_GROUPS}</span></div>
+        <div class="summary-row"><span class="label">知识点覆盖</span><span class="value">${cov.coveredCount} / ${cov.total}</span></div>
+        <div class="summary-row"><span class="label">答对题数</span><span class="value" style="color:#27ae60;">${totalCorrect}</span></div>
+        <div class="summary-row"><span class="label">答错题数</span><span class="value" style="color:#e74c3c;">${totalWrong}</span></div>
+        <div class="summary-row"><span class="label">总正确率</span><span class="value">${accuracy}%</span></div>
+        <div class="summary-row"><span class="label">最高连击</span><span class="value">${maxCombo}</span></div>
+        <div class="summary-row"><span class="label">当前积分</span><span class="value" style="color:#f39c12;">${score}</span></div>
+    `;
+
+    const pointStats = {};
+    for(const key in answeredData){
+        const it = answeredData[key];
+        if(!pointStats[it.point]) pointStats[it.point] = { total:0, correct:0 };
+        pointStats[it.point].total++;
+        if(it.correct) pointStats[it.point].correct++;
+    }
+    let detailHtml = '';
+    if(Object.keys(pointStats).length === 0){
+        detailHtml = '<div style="text-align:center; color:#95a5a6; padding:20px 0;">暂无答题记录</div>';
+    } else {
+        detailHtml = '<table style="width:100%;border-collapse:collapse;font-size:14px;">';
+        detailHtml += '<tr><th style="background:#f8f9fa;padding:10px;text-align:left;">考察的点</th><th style="background:#f8f9fa;padding:10px;text-align:left;">练习次数</th><th style="background:#f8f9fa;padding:10px;text-align:left;">掌握情况</th></tr>';
+        for(const p in pointStats){
+            const s = pointStats[p];
+            const rate = Math.round((s.correct / s.total) * 100);
+            let text = '薄弱', color = '#e74c3c';
+            if(rate === 100){ text = '优秀'; color = '#27ae60'; }
+            else if(rate >= 80){ text = '良好'; color = '#f39c12'; }
+            else if(rate >= 60){ text = '一般'; color = '#e67e22'; }
+            detailHtml += `<tr><td style="padding:10px;border-bottom:1px solid #f0f2f5;">${p}</td>
+                <td style="padding:10px;border-bottom:1px solid #f0f2f5;">${s.total} 次</td>
+                <td style="padding:10px;border-bottom:1px solid #f0f2f5;color:${color};font-weight:bold;">${text} (${rate}%)</td></tr>`;
+        }
+        detailHtml += '</table>';
+    }
+    document.getElementById('pointDetail').innerHTML = detailHtml;
+
+    let feedback = '';
+    if(totalDone === 0){
+        feedback = '还没有开始答题哦，点击数字格子开始挑战吧！';
+    } else if(accuracy >= 90){
+        feedback = '🌟 正确率非常高！保持这个节奏，把薄弱点再巩固一遍就更稳了。';
+    } else if(accuracy >= 75){
+        feedback = '👍 掌握得不错！建议把错题本里的题重做一次，重点看错的知识点。';
+    } else if(accuracy >= 60){
+        feedback = '📘 基础还需加强，建议先回看知识图谱中标红的知识点，再刷一遍对应组。';
+    } else {
+        feedback = '📕 先别急着推进度，把已做错的题逐题弄懂，效果会比多刷几组更好。';
+    }
+    if(totalWrong > 0){
+        const weak = [...new Set(wrongBook.map(i => i.point))];
+        feedback += `<br><br>📝 薄弱知识点：${weak.slice(0,8).join('、')}${weak.length > 8 ? ' 等' : ''}`;
+    }
+    document.getElementById('feedbackText').innerHTML = feedback;
+    document.getElementById('summaryModal').style.display = 'flex';
+}
+
+function closeSummary(){ document.getElementById('summaryModal').style.display = 'none'; }
+
+function showWrongBook(){
+    const box = document.getElementById('wrongList');
+    if(wrongBook.length === 0){
+        box.innerHTML = '<div class="empty-tip">🎉 太棒了！暂无错题</div>';
+    } else {
+        box.innerHTML = wrongBook.map(item => `
+            <div class="wrong-item">
+                <div class="wrong-question">${item.q}</div>
+                <div class="wrong-info">知识点：${item.point} &nbsp;&nbsp; 你的答案：<span>${item.yourAnswer}</span> &nbsp;&nbsp; 正确答案：${item.rightAnswer}</div>
+            </div>`).join('');
+    }
+    document.getElementById('wrongModal').style.display = 'flex';
+}
+
+function closeWrongBook(){ document.getElementById('wrongModal').style.display = 'none'; }
+function showAchievements(){ renderAchievements(); document.getElementById('achievementModal').style.display = 'flex'; }
+function closeAchievements(){ document.getElementById('achievementModal').style.display = 'none'; }
+
+function resetGame(){
+    if(!confirm('确定要重新开始吗？所有答题进度清空，错题本和成就保留。')) return;
+    score = 0; combo = 0; maxCombo = 0; totalCorrect = 0; totalWrong = 0;
+    currentGroup = 0; answeredData = {}; maxUnlockedGroup = 0;
+    renderGrid(); updateGroupBar(); updateStatus(); saveProgress();
+}
+
+// 启动
+try {
+    init();
+} catch(err) {
+    if(window.__setBoot){
+        window.__setBoot('<div style="font-size:20px;font-weight:bold;color:#e74c3c;margin-bottom:10px;">❌ 初始化失败</div>'
+            + '<div style="font-size:14px;color:#7f8c8d;line-height:1.9;">' + String(err && err.message ? err.message : err) + '</div>');
+    }
+}
+</script>
+
+</body>
+</html>
