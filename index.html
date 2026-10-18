@@ -713,6 +713,36 @@ button {
     .tree-btn.level2:hover { background: #fdfdfd; }
     .tree-btn:active { background: #eef2f7; }
 }
+
+/* ===== 教师备课 ===== */
+.teach-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.teach-tab{flex:1;padding:11px 8px;border:2px solid #e1e8ed;background:#fff;border-radius:10px;font-size:15px;font-weight:bold;color:#5a6c7d;cursor:pointer;font-family:inherit;}
+.teach-tab.active{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:#667eea;}
+.teach-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;}
+.teach-chip{padding:7px 12px;border:1px solid #d5dde5;background:#f7f9fb;border-radius:16px;font-size:13px;color:#425466;cursor:pointer;white-space:nowrap;font-family:inherit;}
+.teach-chip.active{background:#667eea;color:#fff;border-color:#667eea;}
+.teach-card{background:#fff;border:1px solid #e4eaf0;border-radius:12px;padding:16px 18px;line-height:1.75;font-size:14.5px;color:#2c3e50;text-align:left;}
+.teach-h{font-size:18px;font-weight:bold;color:#2c3e50;margin-bottom:2px;}
+.teach-path{font-size:12.5px;color:#8898a8;font-weight:normal;margin-top:2px;}
+.teach-sub{font-size:13px;color:#7f8c8d;margin-bottom:12px;}
+.teach-sec{font-weight:bold;color:#4a6fa5;margin-top:15px;margin-bottom:5px;font-size:14.5px;}
+.teach-body{background:#f6f9ff;border-left:3px solid #667eea;padding:9px 12px;border-radius:6px;}
+.teach-formula{background:#2d3e50;color:#7ee2b8;padding:10px 13px;border-radius:6px;font-family:Menlo,Consolas,monospace;font-size:13.5px;overflow-x:auto;white-space:nowrap;}
+.teach-ul{margin:0;padding-left:20px;}
+.teach-ul li{margin-bottom:5px;}
+.teach-q{padding:9px 0;border-bottom:1px dashed #e8edf2;}
+.teach-q:last-child{border-bottom:none;}
+.teach-qt{font-weight:600;color:#34495e;}
+.teach-qa{font-size:13px;color:#27ae60;font-weight:bold;margin-top:3px;}
+.teach-opts{font-size:13px;color:#5a6c7d;margin-top:3px;}
+.teach-lv{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:9px;font-size:11px;color:#fff;font-weight:normal;vertical-align:middle;}
+.teach-lv1{background:#27ae60;}
+.teach-lv2{background:#f39c12;}
+.teach-lv3{background:#e74c3c;}
+.teach-card summary{cursor:pointer;font-weight:bold;color:#4a6fa5;padding:8px 0;outline:none;}
+.teach-where{font-size:12.5px;color:#8a6d3b;background:#fff8e6;border:1px solid #f3d78a;border-radius:6px;padding:7px 11px;margin-top:8px;}
+.operate-btn.teach-btn{background:linear-gradient(135deg,#4b6cb7,#182848);}
+@media(max-width:640px){.teach-card{padding:13px 14px;}.teach-formula{font-size:12.5px;}}
 </style>
 </head>
 <body>
@@ -774,6 +804,7 @@ button {
     <button class="operate-btn purple" onclick="showKnowledgeTree()">📊 知识图谱</button>
     <button class="operate-btn green" onclick="showWrongBook()">📚 错题本</button>
     <button class="operate-btn" onclick="showAchievements()">🏆 成就墙</button>
+    <button class="operate-btn teach-btn" onclick="showTeacher()">📖 教师备课</button>
     <button class="operate-btn gray" onclick="resetGame()">重新开始</button>
 </div>
 
@@ -844,6 +875,29 @@ button {
         <div class="achievement-list" id="achievementList"></div>
         <div style="text-align:center; margin-top:20px;">
             <button class="close-btn" onclick="closeAchievements()">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- 教师备课弹窗 -->
+<div class="modal-mask" id="teacherModal" onclick="if(event.target===this) closeTeacher()">
+    <div class="modal-box" style="max-width:940px;">
+        <div class="modal-title">📖 教师备课 · 知识点讲义</div>
+        <div class="teach-tabs">
+            <button class="teach-tab active" id="teachTabGroup" onclick="switchTeachTab('group')">📚 按组备课</button>
+            <button class="teach-tab" id="teachTabKp" onclick="switchTeachTab('kp')">📌 按知识点</button>
+        </div>
+        <div id="teachGroupView">
+            <div class="teach-row" id="teachGroupList"></div>
+            <div class="teach-card" id="teachGroupCard"></div>
+        </div>
+        <div id="teachKpView" style="display:none;">
+            <div class="teach-row" id="teachCatList"></div>
+            <div class="teach-row" id="teachKpList"></div>
+            <div class="teach-card" id="teachKpCard"></div>
+        </div>
+        <div style="text-align:center; margin-top:18px;">
+            <button class="close-btn" onclick="closeTeacher()">关闭</button>
         </div>
     </div>
 </div>
@@ -1581,6 +1635,413 @@ BANK.writing_format = [
 // ============================================================
 // 三、出题引擎：30 组基础 + 覆盖自检后自动补组
 // ============================================================
+// ============================================================
+// 三、教师备课讲义 TEACH（按知识点 id 组织）
+//     r = 核心规则   f = 结构公式   p = 考点与易错
+// ============================================================
+const TEACH = {
+"present_simple": {
+  r:"表示经常性、习惯性的动作，或客观事实、格言真理。",
+  f:"主语 + 动词原形 / 三单动词(-s, -es)；否定、疑问借 do / does",
+  p:["三单主语（he / she / it、单数名词）动词要加 -s / -es：go→goes，watch→watches",
+     "有了 doesn't / does，后面动词必须还原形：He doesn't likes✗ → He doesn't like✓",
+     "标志词：always, usually, often, sometimes, every day, on Sundays",
+     "客观真理、格言不受时间影响：The sun rises in the east."]
+},
+"past_simple": {
+  r:"表示过去发生的动作或存在的状态，与现在无关。",
+  f:"主语 + 动词过去式；否定、疑问借 did",
+  p:["规则动词加 -ed，不规则动词必须单独记：go→went，buy→bought，see→saw",
+     "有了 didn't / did，后面动词还原形：I didn't went✗ → I didn't go✓",
+     "标志词：yesterday, last week, ...ago, in 2018, just now",
+     "看到 yesterday / last... 就直接用过去时，不受“每天”干扰"]
+},
+"future_simple": {
+  r:"表示将来要发生的动作或存在的状态。",
+  f:"will + 动词原形 / be going to + 动词原形",
+  p:["will 表单纯将来或当场决定；be going to 表计划或有迹象：Look at the clouds! It is going to rain.",
+     "will 后永远跟动词原形：will goes✗ → will go✓",
+     "表示“将会有”用 There will be，不能用 There will have✗",
+     "标志词：tomorrow, next week, in three days, soon"]
+},
+"past_future": {
+  r:"从过去的角度看将要发生的事，常用于宾语从句中。",
+  f:"would + 动词原形 / was(were) going to + 动词原形",
+  p:["主句为过去时，从句表将来要用 would：He said he would come.",
+     "would 后跟动词原形：would went✗ → would go✓",
+     "常见主句动词：said, told, knew, thought, promised + (that) 从句",
+     "直接引语变间接引语时，will 要改成 would"]
+},
+"present_continuous": {
+  r:"表示说话此刻或现阶段正在进行的动作。",
+  f:"am / is / are + 动词-ing",
+  p:["标志词：now, at the moment, Look!, Listen!, these days",
+     "动词变 -ing：去 e 加 ing（make→making），重读闭音节双写末辅音（run→running）",
+     "be 动词不可漏：He playing✗ → He is playing✓",
+     "come / go / leave 可用进行时表安排的将来：I am leaving tomorrow."]
+},
+"past_continuous": {
+  r:"表示过去某一时刻或某段时间正在进行的动作。",
+  f:"was / were + 动词-ing",
+  p:["标志词：at eight last night, at that time, then, when / while 引导的从句",
+     "while 从句常接延续动作（进行时），when 从句常接短暂动作（过去时）",
+     "一长一短两个动作同时发生时，长动作进行、短动作过去：I was reading when he came.",
+     "was 用于 I / he / she / it，were 用于 you / we / they"]
+},
+"present_perfect": {
+  r:"过去发生的动作对现在造成影响，或从过去一直持续到现在。",
+  f:"have / has + 过去分词",
+  p:["for + 时间段，since + 时间点：for two years，since 2015",
+     "与 for / since 连用要用延续性表达：has been dead✓，has died✗",
+     "have been to（去过已回）vs have gone to（去了还没回）",
+     "标志词：already, yet, ever, never, just, so far, twice"]
+},
+"past_perfect": {
+  r:"表示在过去某一时间或动作之前已经完成，即“过去的过去”。",
+  f:"had + 过去分词",
+  p:["常与 by the time, before, when 引导的过去时间状语连用",
+     "先发生的动作用过去完成时，后发生的用一般过去时",
+     "典型：By the time I got there, the film had begun.",
+     "没有“过去”作参照时，不要随便用过去完成时"]
+},
+"passive_basic": {
+  r:"强调动作的承受者，或不知道、没必要说出动作的执行者。",
+  f:"be + 过去分词（时态变化体现在 be 上：is / was / has been / will be）",
+  p:["主动变被动：宾语提前作主语 + be + 过去分词 + (by + 执行者)",
+     "含情态动词的被动：情态动词 + be + 过去分词：must be finished",
+     "不及物动词没有被动：happen, take place, appear, belong to",
+     "易错：The book was written by him. 别漏掉 was，也别把 by 后写成主格"]
+},
+"passive_adv": {
+  r:"在时态、情态、使役结构中灵活使用被动语态。",
+  f:"will be done / have been done / should be done / be made to do",
+  p:["将来时被动 will be done，完成时被动 have / has been done",
+     "使役动词 make / let 变被动时 to 要还原：He was made to clean the room.",
+     "感官动词 see / hear 被动同样还原 to：She was seen to enter the room.",
+     "常见固定结构：It is said that...，It is believed that..."]
+},
+"object_clause": {
+  r:"在动词、介词或形容词后充当宾语的句子。",
+  f:"主句 + 连接词(that / if / whether / 疑问词) + 主语 + 谓语（陈述语序）",
+  p:["从句必须用陈述语序：Do you know where he is? 不能说 where is he",
+     "主句为过去时，从句要用相应过去时态（客观真理除外仍用现在时）",
+     "that 口语中常省略，但并列多个从句时第二个 that 不省",
+     "易错：I don't know what's his name✗ → I don't know what his name is✓"]
+},
+"attributive_clause": {
+  r:"修饰名词或代词的句子，紧跟在被修饰词（先行词）之后。",
+  f:"先行词 + 关系词(who / whom / which / that / whose / where / when) + 从句",
+  p:["先行词指人用 who / that，指物用 which / that，表所属用 whose",
+     "关系词作宾语时可省略：The book (which) I bought is interesting.",
+     "只用 that 的情况：先行词是 all / everything / the only，或被序数词、最高级修饰",
+     "从句谓语与先行词数的一致：He is one of the students who are..."]
+},
+"adv_time": {
+  r:"表示时间，说明主句动作发生的时间。",
+  f:"when / while / as / before / after / until / as soon as + 从句",
+  p:["when 可接短暂或延续动作，while 只接延续动作（常用进行时）",
+     "until / till 表“直到...”；not...until 表“直到...才”",
+     "as soon as 表“一...就...”；主将从现：从句用现在时表将来",
+     "典型：I will tell him when he comes back.（从句不用 will come）"]
+},
+"adv_condition": {
+  r:"表示条件，说明主句动作发生的前提。",
+  f:"if / unless / as long as + 从句",
+  p:["主将从现：If it rains tomorrow, we will stay at home.",
+     "unless = if...not：You will fail unless you work hard.",
+     "if 表“是否”是宾语从句（可用将来时），表“如果”是条件状语从句（用现在时）",
+     "易错：If it will rain✗ → If it rains✓"]
+},
+"adv_reason": {
+  r:"说明原因或结果，常用 because / so / so...that / such...that。",
+  f:"because + 从句；so + 形/副 + that 从句；such + (a/an) + 形 + 名 + that 从句",
+  p:["because 与 so 不能连用：Because..., so...✗ 二者取其一",
+     "because 回答 why，语气最强；as / since 表“既然、由于”",
+     "so + 形容词/副词 + that；such + a/an + 形容词 + 名词 + that",
+     "so that 表目的（= in order that）时从句常有 can / could / will / would"]
+},
+"adv_concession": {
+  r:"表示让步（虽然...但是）或目的（为了...）。",
+  f:"though / although + 从句；so that / in order that + 从句",
+  p:["though / although 与 but 不能连用：Although..., but...✗ 二者取其一",
+     "even though = even if 表“即使”，语气更强",
+     "so that / in order that 表目的，从句常含 can / could / will / would",
+     "in order to / so as to 后接动词原形，不是从句"]
+},
+"infinitive": {
+  r:"to + 动词原形，可作主语、宾语、定语、状语等。",
+  f:"to do / not to do / 疑问词 + to do",
+  p:["常接不定式的动词：want, hope, decide, plan, refuse, offer, would like",
+     "使役、感官动词后不定式省 to：make sb do，let sb do，see sb do（被动还原 to）",
+     "否定形式：not to do，tell sb not to do",
+     "It 作形式主语：It is important to learn English well."]
+},
+"gerund": {
+  r:"动词 -ing 形式起名词作用，作主语或宾语。",
+  f:"doing；常见搭配：enjoy / finish / practice / mind / keep + doing",
+  p:["常接动名词的动词：enjoy, finish, practice, mind, keep, suggest, avoid",
+     "介词后一律接 -ing：be good at, be interested in, look forward to",
+     "stop to do（停下来去做）vs stop doing（停止正在做）",
+     "forget / remember / regret + doing（已做过）vs + to do（还没做）"]
+},
+"participle": {
+  r:"现在分词表主动、进行；过去分词表被动、完成。",
+  f:"doing（主动 / 进行）/ done（被动 / 完成）",
+  p:["现在分词表主动：the boy playing basketball；过去分词表被动：the book written by him",
+     "作定语时单个分词放前面，分词短语放后面",
+     "现在分词作伴随状语：He sat there, reading a book.",
+     "-ed 形容词修饰人，-ing 形容词修饰物：interested / interesting"]
+},
+"modal_basic": {
+  r:"can / may / must / should 等后接动词原形，表能力、许可、义务。",
+  f:"情态动词 + 动词原形（无人称和数的变化）",
+  p:["情态动词后永远跟动词原形，三单不加 -s：He can swims✗",
+     "否定直接在情态动词后加 not：can't, mustn't, shouldn't",
+     "Must 提问的否定回答用 needn't / don't have to（不必），不用 mustn't（禁止）",
+     "can 表能力，may 表许可，must 表必须，should 表应该"]
+},
+"modal_spec": {
+  r:"用情态动词表达对现在或过去的推测。",
+  f:"must / may / might / can't + 动词原形；+ have done 表对过去的推测",
+  p:["must 表肯定推测“一定”；can't 表否定推测“不可能”",
+     "对过去的推测：must have done，might have done",
+     "may / might 表“可能”，might 语气更弱",
+     "易错：He must be at home. 否定是 He can't be at home.（不是 mustn't）"]
+},
+"comparative": {
+  r:"两者相比较，表示“更...”。",
+  f:"比较级 + than；much / even / a lot + 比较级",
+  p:["单音节加 -er：tall→taller；多音节用 more：more interesting",
+     "不规则：good / well→better，bad→worse，many / much→more，far→farther / further",
+     "可用 much, even, a lot, a little 修饰比较级：much better",
+     "the + 比较级..., the + 比较级... 表“越...越...”"]
+},
+"superlative": {
+  r:"三者及以上比较，表示“最...”。",
+  f:"the + 最高级 + in / of 范围",
+  p:["最高级前必须加 the：the tallest boy",
+     "in + 地点范围，of + 同类范围：the tallest in our class / of all the boys",
+     "不规则：best, worst, most, least",
+     "one of the + 最高级 + 复数名词：one of the best students"]
+},
+"equal_degree": {
+  r:"表示两者程度相同或不如。",
+  f:"as + 原级 + as；not as(so) + 原级 + as",
+  p:["as + 形容词/副词原级 + as 表“和...一样”",
+     "否定：not as / so + 原级 + as 表“不如...”",
+     "as 之间必须用原级，不能用比较级或最高级",
+     "倍数表达：twice as + 原级 + as（是...的两倍）"]
+},
+"adverb_usage": {
+  r:"修饰动词、形容词或其他副词，说明方式、程度、频度。",
+  f:"方式副词(-ly)；频度副词位于实义动词前、be / 助动词后",
+  p:["方式副词多由形容词加 -ly 构成：quick→quickly，careful→carefully",
+     "频度副词位置：always, often, usually 放在实义动词前，be 动词、助动词、情态动词后",
+     "enough 修饰形容词/副词时放后面：old enough，fast enough",
+     "易错：He runs fast.（没有 fastly）；hard 既是形容词也是副词"]
+},
+"noun_plural": {
+  r:"可数名词有单复数形式，不可数名词没有复数。",
+  f:"一般加 -s；s / x / ch / sh 加 -es；辅音 + y 变 ies；f / fe 变 ves",
+  p:["不规则复数：man→men，foot→feet，tooth→teeth，child→children，mouse→mice",
+     "单复同形：sheep, deer, fish, Chinese, Japanese",
+     "不可数名词无复数：information, advice, news, furniture, homework",
+     "people 本身是复数；police, clothes 只有复数形式"]
+},
+"noun_possessive": {
+  r:"表示所属关系，有 's 和 of 两种形式。",
+  f:"单数名词 + 's；复数以 s 结尾只加 '；无生命名词用 of",
+  p:["单数名词和不以 s 结尾的复数加 's：Tom's book，children's Day",
+     "以 s 结尾的复数只加 '：the teachers' office",
+     "无生命名词用 of：the leg of the desk",
+     "双重所有格：a friend of my father's"]
+},
+"pronoun_personal": {
+  r:"人称代词分主格、宾格，物主代词分形容词性和名词性。",
+  f:"主格作主语；宾格作宾语；形容词性物主代词 + 名词 = 名词性物主代词",
+  p:["主格 I / he / she / we / they 作主语，宾格 me / him / her / us / them 作宾语",
+     "形容词性物主代词后接名词：my book；名词性物主代词单独使用：This book is mine.",
+     "介词和动词后一律用宾格：with me，help him",
+     "人称并列顺序：二三一（you, he and I）"]
+},
+"pronoun_indefinite": {
+  r:"some / any / each / every / both / neither / all / none 等指代不确定对象。",
+  f:"some 用于肯定句，any 用于否定句和疑问句；both...and / either...or / neither...nor",
+  p:["some 一般用于肯定句，any 用于否定句、疑问句（表请求、邀请的疑问句仍用 some）",
+     "both...and... 表“两者都”，谓语用复数；neither...nor... 表“既不...也不”",
+     "each 强调个体可用于两者及以上；every 强调整体用于三者及以上",
+     "不定代词作主语时谓语用单数：Everyone is here."]
+},
+"article": {
+  r:"a / an 是不定冠词表泛指，the 是定冠词表特指。",
+  f:"a + 辅音音素开头的词；an + 元音音素开头的词；the + 特定对象",
+  p:["a / an 看发音不看字母：an hour，a university，an honest boy",
+     "the 用于双方都知道、上文提过、序数词、最高级、独一无二的事物",
+     "乐器前加 the：play the piano；球类、棋类不加：play basketball",
+     "零冠词：by + 交通工具（by bus）、三餐、季节、学科"]
+},
+"numeral": {
+  r:"表示数目（基数词）或顺序（序数词）。",
+  f:"基数词 one, two...；序数词 the first, the second...",
+  p:["序数词前一般加 the：the first lesson；前面有物主代词时不加：my first day",
+     "几十几：twenty-one → twenty-first（十位不变，个位变序数）",
+     "hundred / thousand / million 前有具体数字时不加 -s：two hundred；hundreds of 表约数",
+     "分数：two thirds（分子基数词，分母序数词，分子大于 1 时分母加 s）"]
+},
+"preposition": {
+  r:"表示时间、地点、方式等关系，后接名词、代词或 -ing。",
+  f:"in / on / at + 时间；in / on / at + 地点",
+  p:["时间：in 年、月、季节、泛指上下午；on 具体某天；at 具体时刻",
+     "地点：in 大地方，at 小地点，on 在...表面上",
+     "方式：by + 交通工具（by car），with + 工具（write with a pen），in + 语言",
+     "易错：on the tree（树上长出来的）vs in the tree（外物在树上）"]
+},
+"conj_coordinate": {
+  r:"连接并列成分，表示并列、转折、选择、因果。",
+  f:"and(并列) but(转折) or(选择) so(因果) for(原因)",
+  p:["and 连接并列成分用于肯定句；or 用于否定句、疑问句表“或者、否则”",
+     "both...and... 表“两者都”，谓语用复数",
+     "not only...but also... 谓语与最近的主语一致（就近原则）",
+     "and 连接两个不定式时，后一个省略 to"]
+},
+"conj_subordinate": {
+  r:"引导状语从句和名词性从句的连接词。",
+  f:"when / if / because / though / that / whether + 从句",
+  p:["引导时间、条件、原因、让步、目的等各类状语从句",
+     "whether / if 表“是否”引导宾语从句时，后有 or not 只能用 whether",
+     "that 引导宾语从句常可省略，但并列从句中第二个 that 不省",
+     "because 与 so、although 与 but 不能成对使用"]
+},
+"there_be": {
+  r:"表示“某处有某物 / 某人”。",
+  f:"There be + 主语 + 地点状语",
+  p:["就近原则：be 与紧跟着的第一个名词保持一致：There is a book and two pens.",
+     "时态变化体现在 be 上：There was / There will be / There has been",
+     "There be 与 have 不能混用：There has a book✗",
+     "There be sb doing sth：There are some children playing outside."]
+},
+"exclamatory": {
+  r:"表达强烈感情，用 what 或 how 引导。",
+  f:"What + (a/an) + 形 + 名 + (主 + 谓)！；How + 形/副 + (主 + 谓)！",
+  p:["what 修饰名词，how 修饰形容词或副词",
+     "What a clever boy he is! = How clever the boy is!",
+     "不可数名词和复数名词前不用 a / an：What fine weather! What beautiful flowers!",
+     "how 还可修饰动词：How time flies!"]
+},
+"question_tag": {
+  r:"反意疑问句由陈述句加简短问句构成，“前肯后否，前否后肯”。",
+  f:"陈述句，+ be / 助动词 / 情态动词 + 主语代词？",
+  p:["前肯后否、前否后肯：He is a student, isn't he?",
+     "祈使句反意用 will you：Open the door, will you?；Let's 用 shall we",
+     "含 never, hardly, few, little, nothing 等否定词时，后半部分用肯定",
+     "I think + 宾语从句时，反意疑问与从句一致：I think he is right, isn't he?"]
+},
+"imperative": {
+  r:"表示命令、请求、建议，省略主语，以动词原形开头。",
+  f:"(Don't +) 动词原形 + 其他",
+  p:["肯定以动词原形开头；否定在句首加 Don't / Never",
+     "表礼貌可加 please；句末用 will you 构成反意疑问",
+     "Let's + 动词原形表建议（包括听话者）；Let us 表请求允许（不包括听话者）",
+     "加强语气时句首加 Do：Do be careful!"]
+},
+"inversion": {
+  r:"so / neither / nor 引导的倒装表示“也... / 也不...”。",
+  f:"So + 助/情态/be + 主语（也...）；Neither / Nor + 助/情态/be + 主语（也不...）",
+  p:["So do I 表“我也是”；Neither do I 表“我也不”",
+     "前后主语不同才倒装；同一主语不倒装：—He is kind. —So he is.（确实如此）",
+     "助动词要与前句时态一致：He can swim, so can I. / He went there, so did I.",
+     "never, seldom, hardly 置于句首时主句部分倒装（了解即可）"]
+},
+"fixed_pattern": {
+  r:"英语中约定俗成的固定表达结构。",
+  f:"It takes sb + 时间 + to do；spend... (in) doing；It is + 形 + of/for sb to do",
+  p:["It takes sb some time to do sth 花费某人...时间做某事",
+     "spend time / money (in) doing / on sth；pay for；cost 主语是物",
+     "It is + 形容词 + for sb to do（形容事情）；of sb to do（形容人的品质）",
+     "too...to 太...而不能；so...that 如此...以致；such...that"]
+},
+"subj_verb_agree": {
+  r:"谓语动词与主语在人称和数上保持一致。",
+  f:"单数主语 + 单数谓语；复数主语 + 复数谓语",
+  p:["each, every, everyone, somebody, nothing 等作主语，谓语用单数",
+     "the number of + 复数名词 → 谓语单数；a number of + 复数名词 → 谓语复数",
+     "with / together with / as well as 连接的成分不影响主语的数（就远原则）",
+     "either...or / neither...nor / not only...but also 就近原则"]
+},
+"reported_speech": {
+  r:"转述别人的话，要注意人称、时态、时间状语的变化。",
+  f:"said (that)...；told sb (that)...；时态后退一步",
+  p:["时态后退一步：am / is→was，will→would，can→could，do→did",
+     "时间地点状语变化：now→then，today→that day，tomorrow→the next day，here→there",
+     "人称随转述对象变化：He said, \"I am busy.\" → He said he was busy.",
+     "客观真理不变时态：The teacher said the earth moves around the sun."]
+},
+"word_discrimination": {
+  r:"区分形近、义近词的用法差异。",
+  f:"say / speak / talk / tell；borrow / lend / keep 等辨析",
+  p:["say 强调说的内容；speak 强调说的动作或某种语言；talk 强调交谈；tell 强调告诉",
+     "borrow 借入（borrow from），lend 借出（lend to），keep 借多久（延续性）",
+     "bring 带来 / take 带走 / carry 搬运 / fetch 去取来",
+     "spend 主语是人；cost 主语是物；take 常用 it 作形式主语"]
+},
+"word_formation": {
+  r:"通过加前后缀或词性转换，改变词性以适应句子需要。",
+  f:"动词→名词(-tion / -ment)；形容词→副词(-ly)；名词→形容词(-ful / -less)",
+  p:["名词后缀：-tion(invention)，-ment(development)，-ness(happiness)",
+     "形容词后缀：-ful(careful)，-less(hopeless)，-y(sunny)，-able(comfortable)",
+     "形容词变副词加 -ly：real→really，true→truly，happy→happily",
+     "判断词性看位置：修饰名词用形容词，修饰动词用副词"]
+},
+"collocation": {
+  r:"动词与介词、副词约定俗成的组合，要整体记忆。",
+  f:"look after / look for / look forward to / be good at / be interested in",
+  p:["同一动词不同介词意思不同：look for 寻找 / look after 照顾 / look up 查阅",
+     "be good at 擅长 / be good for 对...有益 / be good to 对...友好",
+     "be interested in / be proud of / be famous for / be full of",
+     "take part in 参加 / take care of 照顾 / take place 发生"]
+},
+"reading_detail": {
+  r:"从文章中直接查找具体信息的题目。",
+  f:"题干关键词 → 回原文定位 → 比对同义改写",
+  p:["先读题干，圈出人名、地名、数字、时间等关键词",
+     "回到原文定位关键词所在句子，答案往往就在附近",
+     "正确项常是原文的同义改写；原词照抄的选项要警惕",
+     "排除以偏概全、张冠李戴、无中生有的选项"]
+},
+"reading_inference": {
+  r:"根据文章已知信息推断言外之意。",
+  f:"找原文依据 → 合理推断 → 排除过度推断",
+  p:["推断必须基于原文，不能凭常识想当然",
+     "重点关注 but, however, in fact 等转折词后面的内容",
+     "正确选项语气常较委婉（may, might, probably）",
+     "绝对化词语（must, never, all）的选项往往是错的"]
+},
+"reading_main_idea": {
+  r:"概括文章或段落的中心思想。",
+  f:"抓首尾段与段落首句 → 归纳 → 选最具概括性的一项",
+  p:["关注首段、尾段和每段首句，主题句常在这些位置",
+     "正确选项概括全面；太具体或太宽泛的都不对",
+     "给文章选标题要能覆盖全文内容",
+     "高频出现的词往往提示文章主题"]
+},
+"writing_sentence": {
+  r:"改正病句，掌握常见句式的正确表达。",
+  f:"主谓宾完整 → 时态一致 → 用词准确",
+  p:["一个句子必须有主语和谓语，不能缺谓语或用动词原形直接作谓语",
+     "时态要通篇一致，注意时间状语的提示",
+     "常用句式：It is + adj. + to do；I think that...；It takes sb... to do",
+     "避免中文直译：I very like it✗ → I like it very much✓"]
+},
+"writing_format": {
+  r:"书信、通知、日记等应用文的格式与常用语。",
+  f:"称呼 → 正文 → 结束语 → 署名（书信）；NOTICE + 正文 + 落款（通知）",
+  p:["英文书信：称呼顶格（Dear ...,），正文，结束语（Yours,）与署名在右下角",
+     "通知要有标题 NOTICE、正文、落款（单位 / 日期）",
+     "日记左上角写日期和天气：June 1st, Sunny",
+     "常用开头结尾：I'm glad to hear from you. / Best wishes! / I hope to hear from you soon."]
+}
+};
+
 const BASE_GROUP_COUNT = 30;
 const QUESTIONS_PER_GROUP = 15;
 const MAX_GROUP_COUNT = 60;
@@ -2252,6 +2713,199 @@ function showWrongBook(){
 
 function closeWrongBook(){ document.getElementById('wrongModal').style.display = 'none'; }
 function showAchievements(){ renderAchievements(); document.getElementById('achievementModal').style.display = 'flex'; }
+
+// ============================================================
+// 教师备课模块
+// ============================================================
+var TEACH_CATS = [];
+(function(){
+    KNOWLEDGE_TREE.forEach(function(l1){
+        l1.children.forEach(function(l2){
+            TEACH_CATS.push({ id:l2.id, name:l2.name, l1:l1.name, kps:l2.children });
+        });
+    });
+})();
+var teachState = { tab:'group', groupIdx:0, catIdx:0, kpId:'' };
+
+function escT(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function lvName(n){ return n === 1 ? '基础' : (n === 2 ? '进阶' : '提升'); }
+// 名称自带“基础 / 进阶 / 提升”的（如 被动语态基础）就不再重复标难度
+function kpLabel(k){
+    if(!k) return '';
+    var tail = k.name.slice(-2);
+    if(tail === '基础' || tail === '进阶' || tail === '提升') return escT(k.name);
+    return escT(k.name) + '<span class="teach-lv teach-lv' + k.level + '">' + lvName(k.level) + '</span>';
+}
+// 渲染一道题（label 传前缀，如 “例1. ” 或 “1. ”）
+function qBlockTeach(item, label){
+    var opts = item[1].map(function(o, i){ return 'ABCD'[i] + '. ' + escT(o); }).join('　');
+    return '<div class="teach-q"><div class="teach-qt">' + label + escT(item[0]) + '</div>' +
+           '<div class="teach-opts">' + opts + '</div>' +
+           '<div class="teach-qa">答案：' + 'ABCD'[item[2]] + '</div></div>';
+}
+
+function showTeacher(){
+    document.getElementById('teacherModal').style.display = 'flex';
+    renderTeachCats();
+    renderTeachGroupList();
+    switchTeachTab(teachState.tab);
+}
+function closeTeacher(){
+    document.getElementById('teacherModal').style.display = 'none';
+}
+function switchTeachTab(tab){
+    teachState.tab = tab;
+    document.getElementById('teachGroupView').style.display = (tab === 'group') ? 'block' : 'none';
+    document.getElementById('teachKpView').style.display = (tab === 'kp') ? 'block' : 'none';
+    document.getElementById('teachTabGroup').className = 'teach-tab' + (tab === 'group' ? ' active' : '');
+    document.getElementById('teachTabKp').className = 'teach-tab' + (tab === 'kp' ? ' active' : '');
+    if(tab === 'group') selectTeachGroup(teachState.groupIdx);
+    else {
+        if(!teachState.kpId){
+            var c0 = TEACH_CATS[teachState.catIdx];
+            if(c0 && c0.kps[0]) teachState.kpId = c0.kps[0].id;
+        }
+        renderTeachKps();
+        selectTeachKp(teachState.kpId);
+    }
+}
+
+/* ---------- 按组备课 ---------- */
+function renderTeachGroupList(){
+    var el = document.getElementById('teachGroupList');
+    if(!el) return;
+    var h = '';
+    for(var i = 0; i < groups.length; i++){
+        h += '<button class="teach-chip' + (i === teachState.groupIdx ? ' active' : '') +
+             '" onclick="selectTeachGroup(' + i + ')">第' + (i + 1) + '组</button>';
+    }
+    el.innerHTML = h;
+}
+function selectTeachGroup(i){
+    teachState.groupIdx = i;
+    renderTeachGroupList();
+    var g = groups[i];
+    var cnt = {}, order = [];
+    g.questions.forEach(function(q){
+        if(!q.pid) return;
+        if(!cnt[q.pid]){ cnt[q.pid] = 0; order.push(q.pid); }
+        cnt[q.pid]++;
+    });
+    var kpH = '';
+    order.forEach(function(pid){
+        var k = KP_MAP[pid];
+        if(!k) return;
+        kpH += '<button class="teach-chip" onclick="jumpTeachKp(\'' + pid + '\')">' + kpLabel(k) + '</button>';
+    });
+    var qH = '';
+    g.questions.forEach(function(q, idx){
+        var opts = q.options.map(function(o, k){ return 'ABCD'[k] + '. ' + escT(o); }).join('　');
+        qH += '<div class="teach-q"><div class="teach-qt">' + (idx + 1) + '. ' + escT(q.q) + '</div>' +
+              '<div class="teach-opts">' + opts + '</div>' +
+              '<div class="teach-qa">答案：' + 'ABCD'[q.answer] + '　【' + escT(q.point) + '】</div></div>';
+    });
+    document.getElementById('teachGroupCard').innerHTML =
+        '<div class="teach-h">第' + (i + 1) + '组 · ' + escT(g.level) + '</div>' +
+        '<div class="teach-sub">本组 ' + g.questions.length + ' 题，共涉及 ' + order.length +
+        ' 个知识点。点任一知识点可查看讲义（含规则、结构、考点、例题）。</div>' +
+        '<div class="teach-row">' + kpH + '</div>' +
+        '<details><summary>📝 展开本组全部题目与答案</summary>' + qH + '</details>';
+}
+function jumpTeachKp(pid){
+    var found = -1;
+    for(var c = 0; c < TEACH_CATS.length; c++){
+        for(var k = 0; k < TEACH_CATS[c].kps.length; k++){
+            if(TEACH_CATS[c].kps[k].id === pid){ found = c; break; }
+        }
+        if(found >= 0) break;
+    }
+    if(found >= 0) teachState.catIdx = found;
+    teachState.kpId = pid;
+    teachState.tab = 'kp';
+    switchTeachTab('kp');
+}
+
+/* ---------- 按知识点 ---------- */
+function renderTeachCats(){
+    var el = document.getElementById('teachCatList');
+    if(!el) return;
+    var h = '';
+    TEACH_CATS.forEach(function(cat, idx){
+        h += '<button class="teach-chip' + (idx === teachState.catIdx ? ' active' : '') +
+             '" onclick="selectTeachCat(' + idx + ')">' + cat.name + '</button>';
+    });
+    el.innerHTML = h;
+}
+function selectTeachCat(idx){
+    teachState.catIdx = idx;
+    renderTeachCats();
+    renderTeachKps();
+    var first = TEACH_CATS[idx].kps[0];
+    if(first) selectTeachKp(first.id);
+}
+function renderTeachKps(){
+    var el = document.getElementById('teachKpList');
+    if(!el) return;
+    var cat = TEACH_CATS[teachState.catIdx];
+    if(!cat) return;
+    var h = '';
+    cat.kps.forEach(function(k){
+        h += '<button class="teach-chip' + (k.id === teachState.kpId ? ' active' : '') +
+             '" onclick="selectTeachKp(\'' + k.id + '\')">' + kpLabel(k) + '</button>';
+    });
+    el.innerHTML = h;
+}
+function selectTeachKp(pid){
+    if(!pid) return;
+    teachState.kpId = pid;
+    renderTeachKps();
+    var k = KP_MAP[pid];
+    var t = TEACH[pid];
+    var el = document.getElementById('teachKpCard');
+    if(!el) return;
+    if(!t){
+        el.innerHTML = '<div class="teach-h">' + (k ? k.name : pid) + '</div>' +
+                       '<div class="teach-sub">这个知识点的讲义还没准备，可以先看本组题目讲。</div>';
+        return;
+    }
+    var pH = '';
+    t.p.forEach(function(x){ pH += '<li>' + escT(x) + '</li>'; });
+    // 这个知识点出现在哪几组（方便讲完直接安排练习）
+    var inG = [];
+    groups.forEach(function(g, gi){
+        for(var qi = 0; qi < g.questions.length; qi++){
+            if(g.questions[qi].pid === pid){ inG.push(gi + 1); break; }
+        }
+    });
+    var gTxt = '';
+    if(inG.length){
+        var show = inG.slice(0, 8).map(function(n){ return '第' + n + '组'; }).join('、');
+        gTxt = '<div class="teach-where">📍 出现在：' + show +
+               (inG.length > 8 ? ' 等 ' + inG.length + ' 组' : '') + '</div>';
+    } else {
+        gTxt = '<div class="teach-where">📍 这个知识点暂未出现在任何闯关组里，可讲完让学生做专项练习。</div>';
+    }
+    var qH = '';
+    var allH = '';
+    var bank = BANK[pid] || [];
+    bank.forEach(function(item, idx){
+        if(idx < 2) qH += qBlockTeach(item, '例' + (idx + 1) + '. ');
+        else allH += qBlockTeach(item, (idx + 1) + '. ');
+    });
+    el.innerHTML =
+        '<div class="teach-h">' + kpLabel(k) + '</div>' +
+        '<div class="teach-path">' + escT(k.path) + '</div>' + gTxt +
+        '<div class="teach-sec">📌 核心规则</div><div class="teach-body">' + escT(t.r) + '</div>' +
+        '<div class="teach-sec">🔧 结构公式</div><div class="teach-formula">' + escT(t.f) + '</div>' +
+        '<div class="teach-sec">⚠️ 考点与易错</div><ul class="teach-ul">' + pH + '</ul>' +
+        '<div class="teach-sec">📝 代表例题</div>' + qH +
+        (allH ? '<details><summary>📚 展开本知识点其余 ' + Math.max(0, bank.length - 2) + ' 道题（含答案）</summary>' + allH + '</details>' : '');
+}
+
+// ============================================================
+
 function closeAchievements(){ document.getElementById('achievementModal').style.display = 'none'; }
 
 function resetGame(){
