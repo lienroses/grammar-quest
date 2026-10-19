@@ -752,7 +752,9 @@ button {
 .subject-btn.active .sub-desc{color:rgba(255,255,255,0.85);}
 .subject-btn.sub-en.active{background:linear-gradient(135deg,#667eea,#764ba2);}
 .subject-btn.sub-jp.active{background:linear-gradient(135deg,#e05a6b,#c0392b);}
-@media(max-width:640px){.subject-btn{font-size:15px;padding:11px 6px;}.subject-btn .sub-desc{font-size:10.5px;}}
+.subject-btn.sub-c6.active{background:linear-gradient(135deg,#0f9b8e,#0b6e64);}
+@media(max-width:640px){.subject-btn{font-size:14px;padding:11px 4px;}.subject-btn .sub-desc{font-size:10px;}}
+@media(max-width:420px){.subject-bar{gap:6px;padding:0 12px;}.subject-btn{font-size:12.5px;padding:9px 2px;}.subject-btn .sub-desc{font-size:9px;}}
 </style>
 </head>
 <body>
@@ -776,6 +778,7 @@ button {
 <div class="subject-bar">
     <button class="subject-btn sub-en active" id="sub_en" onclick="switchSubject('en')">🔤 初中英语<span class="sub-desc">语法 · 30组 · 50知识点</span></button>
     <button class="subject-btn" id="sub_jp" onclick="switchSubject('jp')">🇯🇵 日语 N3-N1<span class="sub-desc">语法+单词 · 30组 · 59知识点</span></button>
+    <button class="subject-btn" id="sub_c6" onclick="switchSubject('c6')">🎓 六级 CET-6<span class="sub-desc">词汇+语法 · 30组 · 59知识点</span></button>
 </div>
 
 <!-- 顶部状态栏 -->
@@ -3424,9 +3427,1253 @@ let GROUP_LEVELS = [
 const EN_DATA = { tree: KNOWLEDGE_TREE, bank: BANK, teach: TEACH, levels: GROUP_LEVELS, base: 30 };
 const JP_DATA = { tree: JP_KNOWLEDGE_TREE, bank: JP_BANK, teach: JP_TEACH, levels: JP_GROUP_LEVELS, base: 30 };
 
+/* ============================================================
+   六级 CET-6（知识点树 / 组名）
+   4 大类 · 12 中类 · 59 叶子
+   level: 1=核心 2=进阶 3=冲刺
+   ============================================================ */
+const C6_GROUP_LEVELS = [
+    '词汇起步篇','词汇辨析篇','形近词篇','近义词篇','核心词汇综合篇',
+    '短语入门篇','动词短语篇','介词搭配篇','惯用表达篇','核心综合篇',
+    '进阶词汇篇1','进阶词汇篇2','进阶搭配篇1','进阶搭配篇2','虚拟语气篇',
+    '倒装篇','非谓语篇','从句篇','进阶语法综合篇','进阶综合篇',
+    '冲刺词汇篇1','冲刺词汇篇2','冲刺搭配篇','冲刺语法篇','选词填空篇1',
+    '选词填空篇2','语境运用篇','全真模拟1','全真模拟2','终极挑战'
+];
+const C6_KNOWLEDGE_TREE = [
+    { id:'c6_vocab', name:'核心词汇 · 词义辨析', children:[
+        { id:'c6_verb', name:'动词辨析', children:[
+            { id:'c6_v_adapt',      name:'adapt / adopt / adept 形近动词', level:1 },
+            { id:'c6_v_assure',     name:'assure / ensure / insure 保证类', level:1 },
+            { id:'c6_v_impose',     name:'impose / expose / dispose / propose', level:2 },
+            { id:'c6_v_claim',      name:'claim / exclaim / proclaim / reclaim', level:2 },
+            { id:'c6_v_conform',    name:'conform / confirm / deform / reform', level:2 },
+            { id:'c6_v_compel',     name:'compel / impel / propel / repel', level:3 },
+            { id:'c6_v_induce',     name:'induce / deduce / reduce / seduce', level:3 }
+        ]},
+        { id:'c6_noun', name:'名词辨析', children:[
+            { id:'c6_n_access',     name:'access / excess / assess / asset', level:1 },
+            { id:'c6_n_effect',     name:'effect / affect / effort / afford', level:1 },
+            { id:'c6_n_status',     name:'status / statue / statute / stature', level:2 },
+            { id:'c6_n_prospect',   name:'prospect / perspective / retrospect', level:2 },
+            { id:'c6_n_facility',   name:'facility / faculty / capacity / capability', level:2 },
+            { id:'c6_n_premium',    name:'premium / pension / precision / permission', level:3 },
+            { id:'c6_n_convention', name:'convention / conviction / conversion / conservation', level:3 }
+        ]},
+        { id:'c6_adj', name:'形容词 · 副词辨析', children:[
+            { id:'c6_a_considerate', name:'considerate / considerable / considering', level:1 },
+            { id:'c6_a_economic',    name:'economic / economical / economy', level:1 },
+            { id:'c6_a_sensitive',   name:'sensitive / sensible / sensory / sensual', level:2 },
+            { id:'c6_a_continuous',  name:'continuous / continual / constant / consistent', level:2 },
+            { id:'c6_a_eligible',    name:'eligible / legible / illegible / negligible', level:3 },
+            { id:'c6_a_deliberate',  name:'deliberate / delicate / dedicate / delegate', level:3 }
+        ]}
+    ]},
+    { id:'c6_colloc', name:'固定搭配 · 短语动词', children:[
+        { id:'c6_phr', name:'核心动词短语', children:[
+            { id:'c6_p_take',   name:'take 系列短语', level:1 },
+            { id:'c6_p_make',   name:'make 系列短语', level:1 },
+            { id:'c6_p_put',    name:'put 系列短语', level:2 },
+            { id:'c6_p_come',   name:'come 系列短语', level:2 },
+            { id:'c6_p_give',   name:'give 系列短语', level:2 },
+            { id:'c6_p_break',  name:'break 系列短语', level:3 }
+        ]},
+        { id:'c6_prep', name:'介词 · 形容词搭配', children:[
+            { id:'c6_c_prep_adj',  name:'形容词 + 介词（prone to / immune to）', level:2 },
+            { id:'c6_c_prep_n',    name:'名词 + 介词（access to / insight into）', level:2 },
+            { id:'c6_c_idiom',     name:'惯用介词短语（at stake / in the long run）', level:2 },
+            { id:'c6_c_prep_v',    name:'动词 + 介词（comply with / abide by）', level:3 },
+            { id:'c6_c_connector', name:'逻辑连接短语（in that / lest / in so far as）', level:3 }
+        ]},
+        { id:'c6_set', name:'高频固定词组', children:[
+            { id:'c6_c_account', name:'account for / on account of', level:1 },
+            { id:'c6_c_terms',   name:'in terms of / come to terms with', level:2 },
+            { id:'c6_c_light',   name:'in light of / bring to light / cast light on', level:3 },
+            { id:'c6_c_way',     name:'by way of / in no way / under way', level:3 }
+        ]}
+    ]},
+    { id:'c6_grammar', name:'高阶语法', children:[
+        { id:'c6_subj', name:'虚拟语气 · 倒装', children:[
+            { id:'c6_g_subj_basic', name:'虚拟语气基础（if 型三种时态）', level:1 },
+            { id:'c6_g_subj_noun',  name:'名词性从句中的虚拟（demand that…）', level:2 },
+            { id:'c6_g_subj_fixed', name:'虚拟固定句式（high time / would rather / as if）', level:2 },
+            { id:'c6_g_inv_neg',    name:'否定副词提前倒装（never / not only）', level:2 },
+            { id:'c6_g_inv_adv',    name:'so / such 与状语提前倒装', level:3 }
+        ]},
+        { id:'c6_clause', name:'非谓语 · 从句', children:[
+            { id:'c6_g_participle', name:'分词作状语与垂悬分词', level:1 },
+            { id:'c6_g_absolute',   name:'独立主格结构', level:2 },
+            { id:'c6_g_infinitive', name:'不定式 vs 动名词', level:2 },
+            { id:'c6_g_relative',   name:'定语从句（which / that / whose / as）', level:2 },
+            { id:'c6_g_noun_cl',    name:'名词性从句与同位语从句', level:3 }
+        ]},
+        { id:'c6_adv', name:'一致 · 强调 · 省略', children:[
+            { id:'c6_g_agreement', name:'主谓一致与就近原则', level:1 },
+            { id:'c6_g_emphasis',  name:'强调句 It is … that …', level:2 },
+            { id:'c6_g_ellipsis',  name:'省略与替代（so / do so / one）', level:3 },
+            { id:'c6_g_mixed_subj',name:'混合虚拟与含蓄虚拟（but for / otherwise）', level:3 }
+        ]}
+    ]},
+    { id:'c6_usage', name:'选词填空 · 语境运用', children:[
+        { id:'c6_pos', name:'词性判断', children:[
+            { id:'c6_u_pos_verb',      name:'动词词形判断（时态 · 语态 · 单三）', level:1 },
+            { id:'c6_u_pos_noun',      name:'名词单复数与不可数名词', level:2 },
+            { id:'c6_u_pos_adj_adv',   name:'形容词 / 副词辨析填空', level:2 },
+            { id:'c6_u_pos_connective',name:'连接词与逻辑关系判断', level:3 }
+        ]},
+        { id:'c6_ctx', name:'语境选词', children:[
+            { id:'c6_u_ctx_cause',      name:'因果与目的语境', level:1 },
+            { id:'c6_u_ctx_formal',     name:'正式语体词汇（书面 vs 口语）', level:2 },
+            { id:'c6_u_ctx_academic',   name:'学术高频词（undermine / facilitate）', level:2 },
+            { id:'c6_u_ctx_negative',   name:'消极 / 积极语义色彩', level:3 },
+            { id:'c6_u_ctx_collocation',name:'上下文固定搭配呼应', level:3 },
+            { id:'c6_u_ctx_transition', name:'转折与让步语境', level:3 }
+        ]}
+    ]}
+];
+
+const C6_BANK = {};
+const C6_TEACH = {};
+/* 六级题库 1/8：核心词汇 · 动词辨析（7 知识点 × 8 题 = 56） */
+C6_BANK.c6_v_adapt = [
+["After moving to the big city, it took him months to ____ to the fast pace of life.", ["adapt","adopt","adept","adhere"], 0],
+["The committee finally decided to ____ the proposal after a long debate.", ["adapt","adopt","adept","adhere"], 1],
+["She is remarkably ____ at handling difficult customers.", ["adapt","adopt","adept","adhere"], 2],
+["The novel was ____ for television in 2023.", ["adapted","adopted","adepted","adhered"], 0],
+["They chose to ____ a child from the local orphanage.", ["adapt","adopt","adept","admit"], 1],
+["It is never easy to ____ oneself to a completely new environment overnight.", ["adapt","adopt","adept","admit"], 0],
+["An ____ liar can be surprisingly convincing.", ["adapt","adopt","adept","adapted"], 2],
+["The new teaching method was ____ from a similar program in Canada.", ["adapted","adopted","adepted","adhered"], 0]
+];
+C6_BANK.c6_v_assure = [
+["I can ____ you that the report will be finished by Friday.", ["assure","ensure","insure","reassure"], 0],
+["Please ____ that all the windows are locked before you leave.", ["assure","ensure","insure","reassure"], 1],
+["You ought to ____ your house against fire and theft.", ["assure","ensure","insure","reassure"], 2],
+["The doctor gently ____ the worried mother that her son would recover.", ["assured","ensured","insured","reassured"], 3],
+["Hard work alone does not ____ success.", ["assure","ensure","insure","reassure"], 1],
+["The goods were ____ against any loss in transit.", ["assured","ensured","insured","reassured"], 2],
+["Let me ____ you of my full support for the plan.", ["assure","ensure","insure","reassure"], 0],
+["Regular maintenance ____ that the machine runs smoothly.", ["assures","ensures","insures","reassures"], 1]
+];
+C6_BANK.c6_v_impose = [
+["The government decided to ____ a heavy tax on imported luxury goods.", ["impose","expose","dispose","propose"], 0],
+["Parents should not ____ their own ambitions on their children.", ["impose","expose","dispose","propose"], 0],
+["Young children should never be ____ to violent films.", ["imposed","exposed","disposed","proposed"], 1],
+["The factory must ____ of its toxic waste in a safe way.", ["impose","expose","dispose","propose"], 2],
+["At the meeting he ____ that the project be started earlier.", ["imposed","exposed","disposed","proposed"], 3],
+["The new regulations ____ a serious burden on small businesses.", ["impose","expose","dispose","propose"], 0],
+["Her investigative article ____ widespread corruption in the department.", ["imposed","exposed","disposed","proposed"], 1],
+["After the picnic we ____ of all the rubbish in the bins.", ["imposed","exposed","disposed","proposed"], 2]
+];
+C6_BANK.c6_v_claim = [
+["He ____ to have seen the suspect near the scene of the crime.", ["claimed","exclaimed","proclaimed","reclaimed"], 0],
+["The president ____ a state of emergency after the disaster.", ["claimed","exclaimed","proclaimed","reclaimed"], 2],
+["'What a breathtaking view!' she ____ with delight.", ["claimed","exclaimed","proclaimed","reclaimed"], 1],
+["Passengers may ____ their luggage at the arrival hall.", ["claim","exclaim","proclaim","reclaim"], 0],
+["The firm ____ compensation for the goods damaged in transit.", ["claimed","exclaimed","proclaimed","reclaimed"], 0],
+["The project aims to ____ land from the sea for farming.", ["claim","exclaim","proclaim","reclaim"], 3],
+["Throughout the trial he ____ his innocence to the very end.", ["claimed","exclaimed","proclaimed","reclaimed"], 2],
+["You can ____ the deposit once the contract is signed.", ["claim","exclaim","proclaim","reclaim"], 3]
+];
+C6_BANK.c6_v_conform = [
+["All new students must ____ to the school regulations.", ["conform","confirm","deform","reform"], 0],
+["Please ____ your flight reservation by telephone.", ["conform","confirm","deform","reform"], 1],
+["The intense heat ____ the plastic container beyond use.", ["conformed","confirmed","deformed","reformed"], 2],
+["The new minister promised to ____ the tax system.", ["conform","confirm","deform","reform"], 3],
+["His views on education do not ____ with mine at all.", ["conform","confirm","deform","reform"], 0],
+["The latest experiment ____ the scientist's original hypothesis.", ["conformed","confirmed","deformed","reformed"], 1],
+["The metal frame ____ under extreme pressure.", ["conforms","confirms","deforms","reforms"], 2],
+["It took the government years to ____ the outdated system.", ["conform","confirm","deform","reform"], 3]
+];
+C6_BANK.c6_v_compel = [
+["Bad weather ____ us to cancel the weekend trip.", ["compelled","impelled","propelled","repelled"], 0],
+["The rocket is ____ by a mixture of liquid fuels.", ["compelled","impelled","propelled","repelled"], 2],
+["A strong sense of duty ____ him to tell the truth.", ["compelled","impelled","propelled","repelled"], 1],
+["The terrible smell from the drains ____ the guests.", ["compelled","impelled","propelled","repelled"], 3],
+["The army successfully ____ the enemy's second attack.", ["compelled","impelled","propelled","repelled"], 3],
+["Pure curiosity ____ her to open the dusty old box.", ["compelled","impelled","propelled","repelled"], 1],
+["A sudden gust of wind ____ the small boat across the lake.", ["compelled","impelled","propelled","repelled"], 2],
+["The new law ____ employers to provide safe working conditions.", ["compels","impels","propels","repels"], 0]
+];
+C6_BANK.c6_v_induce = [
+["From these clues we can ____ that he was not present.", ["induce","deduce","reduce","seduce"], 1],
+["This medicine may ____ drowsiness in some patients.", ["induce","deduce","reduce","seduce"], 0],
+["The company aims to ____ its costs by ten percent this year.", ["induce","deduce","reduce","seduce"], 2],
+["He was ____ into buying a completely worthless painting.", ["induced","deduced","reduced","seduced"], 3],
+["What on earth ____ you to change your mind so suddenly?", ["induced","deduced","reduced","seduced"], 0],
+["Detectives ____ the suspect's identity from a single fingerprint.", ["induced","deduced","reduced","seduced"], 1],
+["Heavy advertising ____ people to buy things they do not need.", ["induces","deduces","reduces","seduces"], 0],
+["Ticket prices were ____ to half their original level.", ["induced","deduced","reduced","seduced"], 2]
+];
+/* 六级题库 2/8：核心词汇 · 名词辨析（7 × 8 = 56） */
+C6_BANK.c6_n_access = [
+["Students now have free ____ to the university's online database.", ["access","excess","assess","asset"], 0],
+["An ____ of rain caused serious flooding in the region.", ["access","excess","assess","asset"], 1],
+["It is difficult to ____ the true value of the painting.", ["access","excess","assess","asset"], 2],
+["Her fluency in three languages is a real ____ to the team.", ["access","excess","assess","asset"], 3],
+["The files can be ____ only by authorized personnel.", ["accessed","excessed","assessed","asseted"], 0],
+["The ____ luggage will be charged at a higher rate.", ["access","excess","assess","asset"], 1],
+["The committee will ____ the environmental impact of the plan.", ["access","excess","assess","asset"], 2],
+["A good reputation is the most valuable ____ a firm can own.", ["access","excess","assess","asset"], 3]
+];
+C6_BANK.c6_n_effect = [
+["The new law will take ____ from the first of January.", ["effect","affect","effort","afford"], 0],
+["Smoking seriously ____ your health.", ["effects","affects","efforts","affords"], 1],
+["It took a great ____ of will to finish the marathon.", ["effect","affect","effort","afford"], 2],
+["We simply cannot ____ a holiday abroad this year.", ["effect","affect","effort","afford"], 3],
+["The medicine had no ____ on the patient's condition.", ["effect","affect","effort","afford"], 0],
+["The whole region was ____ by the sudden drought.", ["effected","affected","efforted","afforded"], 1],
+["He made every ____ to arrive on time.", ["effect","affect","effort","afford"], 2],
+["Families with two children can hardly ____ private schooling.", ["effect","affect","effort","afford"], 3]
+];
+C6_BANK.c6_n_status = [
+["The ____ of women in society has changed dramatically.", ["status","statue","statute","stature"], 0],
+["A bronze ____ of the founder stands in the main hall.", ["status","statue","statute","stature"], 1],
+["The new ____ on consumer rights takes effect next month.", ["status","statue","statute","stature"], 2],
+["He is a scientist of international ____.", ["status","statue","statute","stature"], 3],
+["Marriage confers a particular legal ____ on the couple.", ["status","statue","statute","stature"], 0],
+["The ____ was erected to honour those who died in the war.", ["status","statue","statute","stature"], 1],
+["Under the existing ____ such contracts are not valid.", ["status","statue","statute","stature"], 2],
+["Her ____ as a moral leader grew after the crisis.", ["status","statue","statute","stature"], 3]
+];
+C6_BANK.c6_n_prospect = [
+["The ____ of finding a job in this field look promising.", ["prospects","perspectives","retrospects","inspects"], 0],
+["From an economic ____ the policy makes little sense.", ["prospect","perspective","retrospect","inspect"], 1],
+["In ____ , I think we made the right decision.", ["prospect","perspective","retrospect","inspect"], 2],
+["There is little ____ of the situation improving soon.", ["prospect","perspective","retrospect","inspect"], 0],
+["The article offers a fresh ____ on a familiar problem.", ["prospect","perspective","retrospect","inspect"], 1],
+["Job ____ for graduates remain uncertain this year.", ["prospects","perspectives","retrospects","inspects"], 0],
+["____ , we should have consulted an expert first.", ["In prospect","In perspective","In retrospect","In inspect"], 2],
+["Before buying, you should ____ the goods carefully.", ["prospect","perspective","retrospect","inspect"], 3]
+];
+C6_BANK.c6_n_facility = [
+["The school has excellent sports ____.", ["facilities","faculties","capacities","capabilities"], 0],
+["She is a member of the law ____ at this university.", ["facility","faculty","capacity","capability"], 1],
+["The hall has a seating ____ of two thousand people.", ["facility","faculty","capacity","capability"], 2],
+["The new system has the ____ to process huge amounts of data.", ["facility","faculty","capacity","capability"], 3],
+["He has a remarkable ____ for learning foreign languages.", ["facility","faculty","capacity","capability"], 1],
+["The factory is working at full ____ to meet demand.", ["facility","faculty","capacity","capability"], 2],
+["Recycling ____ in the area are badly underfunded.", ["facilities","faculties","capacities","capabilities"], 0],
+["Nuclear ____ remains a controversial issue worldwide.", ["facility","faculty","capacity","capability"], 3]
+];
+C6_BANK.c6_n_premium = [
+["Customers pay a ____ for faster delivery.", ["premium","pension","precision","permission"], 0],
+["After thirty years of service he receives a good ____.", ["premium","pension","precision","permission"], 1],
+["The measurements were made with great ____.", ["premium","pension","precision","permission"], 2],
+["You must obtain ____ before entering the restricted zone.", ["premium","pension","precision","permission"], 3],
+["Insurance ____ have risen sharply this year.", ["premiums","pensions","precisions","permissions"], 0],
+["The retired couple live on a modest state ____.", ["premium","pension","precision","permission"], 1],
+["The report lacks the ____ required for such a claim.", ["premium","pension","precision","permission"], 2],
+["Written ____ from both parents is required for the trip.", ["premium","pension","precision","permission"], 3]
+];
+C6_BANK.c6_n_convention = [
+["The annual ____ will be held in Chicago this October.", ["convention","conviction","conversion","conservation"], 0],
+["She spoke with great ____ about the need for reform.", ["convention","conviction","conversion","conservation"], 1],
+["The ____ of the old factory into flats took two years.", ["convention","conviction","conversion","conservation"], 2],
+["Wildlife ____ is a key part of the new policy.", ["convention","conviction","conversion","conservation"], 3],
+["It is a social ____ to shake hands when you meet someone.", ["convention","conviction","conversion","conservation"], 0],
+["His religious ____ prevented him from taking part.", ["convention","conviction","conversion","conservation"], 1],
+["The ____ rate between the two currencies has changed.", ["convention","conviction","conversion","conservation"], 2],
+["Energy ____ is encouraged through tax incentives.", ["convention","conviction","conversion","conservation"], 3]
+];
+/* 六级题库 3/8：形容词 · 副词辨析（6 × 8 = 48） */
+C6_BANK.c6_a_considerate = [
+["It was very ____ of you to wait for me in the rain.", ["considerate","considerable","considering","considered"], 0],
+["A ____ amount of money was spent on the project.", ["considerate","considerable","considering","considered"], 1],
+["She did well, ____ that she had only two days to prepare.", ["considerate","considerable","considered","considering"], 3],
+["He is always ____ towards elderly neighbours.", ["considerate","considerable","considered","considering"], 0],
+["The plan attracted ____ public criticism.", ["considerate","considerable","considered","considering"], 1],
+["____ his age, the child reads remarkably well.", ["Considerate","Considerable","Considered","Considering"], 3],
+["A ____ person never talks loudly on public transport.", ["considerate","considerable","considered","considering"], 0],
+["There is a ____ risk that prices will rise again.", ["considerate","considerable","considered","considering"], 1]
+];
+C6_BANK.c6_a_economic = [
+["The country faces serious ____ problems this year.", ["economic","economical","economy","economics"], 0],
+["A small car is more ____ to run than a large one.", ["economic","economical","economy","economics"], 1],
+["The national ____ grew by three percent last quarter.", ["economic","economical","economy","economics"], 2],
+["She is studying ____ at university.", ["economic","economical","economy","economics"], 3],
+["____ sanctions were imposed by several countries.", ["Economic","Economical","Economy","Economics"], 0],
+["We must be ____ with our limited resources.", ["economic","economical","economy","economics"], 1],
+["The ____ class ticket is much cheaper.", ["economic","economical","economy","economics"], 2],
+["This heater is very ____ — it uses little electricity.", ["economic","economical","economy","economics"], 1]
+];
+C6_BANK.c6_a_sensitive = [
+["He is very ____ to criticism about his work.", ["sensitive","sensible","sensory","sensual"], 0],
+["It would be ____ to save some money every month.", ["sensitive","sensible","sensory","sensual"], 1],
+["Damage to the brain can affect ____ functions.", ["sensitive","sensible","sensory","sensual"], 2],
+["The advertisement relies heavily on ____ imagery.", ["sensitive","sensible","sensory","sensual"], 3],
+["Photographic paper is highly ____ to light.", ["sensitive","sensible","sensory","sensual"], 0],
+["That seems a ____ way of dealing with the problem.", ["sensitive","sensible","sensory","sensual"], 1],
+["The nerve endings carry ____ information to the brain.", ["sensitive","sensible","sensory","sensual"], 2],
+["The ____ issue must be handled with great care.", ["sensitive","sensible","sensory","sensual"], 0]
+];
+C6_BANK.c6_a_continuous = [
+["The machine ran ____ for seventy-two hours.", ["continuous","continual","constant","consistent"], 0],
+["His ____ interruptions made the meeting unbearable.", ["continuous","continual","constant","consistent"], 1],
+["The price of oil is in ____ fluctuation this year.", ["continuous","continual","constant","consistent"], 2],
+["Her results have been ____ excellent all term.", ["continuous","continual","constant","consistent"], 3],
+["There is a ____ background noise from the motorway.", ["continuous","continual","constant","consistent"], 2],
+["The ____ rain has damaged the harvest.", ["continuous","continual","constant","consistent"], 0],
+["You must be ____ if you want to improve your English.", ["continuous","continual","constant","consistent"], 3],
+["We suffered ____ delays due to staff shortages.", ["continuous","continual","constant","consistent"], 1]
+];
+C6_BANK.c6_a_eligible = [
+["Only citizens over eighteen are ____ to vote.", ["eligible","legible","illegible","negligible"], 0],
+["The doctor's handwriting was barely ____.", ["eligible","legible","illegible","negligible"], 1],
+["His signature was completely ____ on the form.", ["eligible","legible","illegible","negligible"], 2],
+["The difference between the two results is ____.", ["eligible","legible","illegible","negligible"], 3],
+["Graduates with a second class degree are ____ to apply.", ["eligible","legible","illegible","negligible"], 0],
+["Please print clearly so that your answers remain ____.", ["eligible","legible","illegible","negligible"], 1],
+["The risk of infection is now ____.", ["eligible","legible","illegible","negligible"], 3],
+["Is she ____ for unemployment benefit?", ["eligible","legible","illegible","negligible"], 0]
+];
+C6_BANK.c6_a_deliberate = [
+["The omission of her name was ____ , not accidental.", ["deliberate","delicate","dedicated","delegated"], 0],
+["The negotiations have reached a ____ stage.", ["deliberate","delicate","dedicated","delegated"], 1],
+["She is a ____ teacher who stays late every day.", ["deliberate","delicate","dedicated","delegated"], 2],
+["Much of the routine work was ____ to junior staff.", ["deliberate","delicate","dedicated","delegated"], 3],
+["He spoke in a slow and ____ manner.", ["deliberate","delicate","dedicated","delegated"], 0],
+["The vase is very ____ — please handle it with care.", ["deliberate","delicate","dedicated","delegated"], 1],
+["The new wing of the hospital was ____ to cancer research.", ["deliberate","delicate","dedicated","delegated"], 2],
+["The manager ____ the task to her deputy.", ["deliberated","delicated","dedicated","delegated"], 3]
+];
+/* 六级题库 4/8：核心动词短语（6 × 8 = 48） */
+C6_BANK.c6_p_take = [
+["She ____ advantage of every chance to practise her English.", ["took","made","gave","put"], 0],
+["You shouldn't ____ it for granted that they will help you.", ["take","make","give","put"], 0],
+["The committee will ____ the cost into account.", ["take","make","give","put"], 0],
+["The new manager will ____ over the department next week.", ["take","make","give","put"], 0],
+["The flight will ____ off in twenty minutes.", ["take","make","give","put"], 0],
+["He ____ after his father in both looks and temper.", ["takes","makes","gives","puts"], 0],
+["Please ____ part in the discussion.", ["take","make","give","put"], 0],
+["The company decided to ____ on fifty new workers.", ["take","make","give","put"], 0]
+];
+C6_BANK.c6_p_make = [
+["An apology cannot ____ up for the damage already done.", ["make","take","give","put"], 0],
+["I simply cannot ____ sense of this instruction manual.", ["make","take","give","put"], 0],
+["The old cinema will ____ way for a new shopping centre.", ["make","take","give","put"], 0],
+["She ____ the most of her time abroad.", ["made","took","gave","put"], 0],
+["Hard work can ____ up for a lack of experience.", ["make","take","give","put"], 0],
+["Can you ____ out the name on this signature?", ["make","take","give","put"], 0],
+["They ____ for the coast as soon as it grew dark.", ["made","took","gave","put"], 0],
+["We must ____ sure that every door is locked.", ["make","take","give","put"], 0]
+];
+C6_BANK.c6_p_put = [
+["I refuse to ____ up with such rude behaviour any longer.", ["put","take","make","give"], 0],
+["She ____ forward a proposal at yesterday's meeting.", ["put","took","made","gave"], 0],
+["The match was ____ off because of heavy rain.", ["put","taken","made","given"], 0],
+["He ____ aside some money every month for emergencies.", ["puts","takes","makes","gives"], 0],
+["Firefighters ____ out the blaze within an hour.", ["put","took","made","gave"], 0],
+["The new policy will be ____ into effect next April.", ["put","taken","made","given"], 0],
+["She can't ____ up with his constant complaints.", ["put","take","make","give"], 0],
+["Please ____ away your books before the test begins.", ["put","take","make","give"], 0]
+];
+C6_BANK.c6_p_come = [
+["She ____ up with a brilliant solution to the problem.", ["came","went","took","made"], 0],
+["I ____ across an old photograph while clearing the attic.", ["came","went","took","made"], 0],
+["After years of dispute they finally ____ to terms with each other.", ["came","went","took","made"], 0],
+["The total bill ____ to more than five hundred pounds.", ["comes","goes","takes","makes"], 0],
+["His first novel ____ out in 2019.", ["came","went","took","made"], 0],
+["The truth will ____ out sooner or later.", ["come","go","take","make"], 0],
+["How did the accident ____ about?", ["come","go","take","make"], 0],
+["She ____ up against fierce opposition from the board.", ["came","went","took","made"], 0]
+];
+C6_BANK.c6_p_give = [
+["Poor sanitation can ____ rise to serious disease.", ["give","take","make","come"], 0],
+["The old bridge finally ____ way under the heavy load.", ["gave","took","made","came"], 0],
+["After a long argument he ____ in to their demands.", ["gave","took","made","came"], 0],
+["The minister refused to ____ away any details of the plan.", ["give","take","make","come"], 0],
+["Smoking ____ off harmful chemicals into the air.", ["gives","takes","makes","comes"], 0],
+["She had to ____ up her job to look after her mother.", ["give","take","make","come"], 0],
+["The charity ____ out food to the homeless every evening.", ["gives","takes","makes","comes"], 0],
+["The engine ____ out a strange noise just before it stopped.", ["gave","took","made","came"], 0]
+];
+C6_BANK.c6_p_break = [
+["Scientists hope to ____ through in cancer research soon.", ["break","take","make","come"], 0],
+["Negotiations ____ down after only two hours.", ["broke","took","made","came"], 0],
+["Thieves ____ into the warehouse late last night.", ["broke","took","made","came"], 0],
+["The company tried to ____ into the Asian market.", ["break","take","make","come"], 0],
+["War ____ out between the two states in 1914.", ["broke","took","made","came"], 0],
+["The marriage ____ up after five difficult years.", ["broke","took","made","came"], 0],
+["He ____ off in the middle of his own sentence.", ["broke","took","made","came"], 0],
+["The car ____ down on the motorway yesterday.", ["broke","took","made","came"], 0]
+];
+/* 六级题库 5/8：介词搭配 · 固定词组（9 × 8 = 72） */
+C6_BANK.c6_c_prep_adj = [
+["People with fair skin are more prone ____ sunburn.", ["to","for","with","of"], 0],
+["Small children are especially susceptible ____ colds.", ["to","for","with","of"], 0],
+["Once vaccinated you become immune ____ the disease.", ["to","for","with","from"], 0],
+["The plan is superior ____ any other we have seen.", ["to","than","with","of"], 0],
+["He is indifferent ____ other people's opinions.", ["to","for","with","of"], 0],
+["These figures are comparable ____ last year's.", ["to","with","for","of"], 0],
+["She is fully aware ____ the risks involved.", ["of","to","with","for"], 0],
+["Such behaviour is typical ____ adolescent boys.", ["of","to","with","for"], 0]
+];
+C6_BANK.c6_c_prep_n = [
+["Students have free access ____ the library database.", ["to","for","of","with"], 0],
+["The book gives a deep insight ____ rural life.", ["into","to","of","for"], 1],
+["She has a marked preference ____ classical music.", ["for","to","of","with"], 0],
+["There is no simple solution ____ this problem.", ["to","for","of","with"], 0],
+["His attitude ____ work has improved recently.", ["to","for","of","with"], 0],
+["The demand ____ skilled workers keeps rising.", ["for","to","of","with"], 0],
+["The report casts doubt ____ the official figures.", ["on","to","for","of"], 0],
+["They placed great emphasis ____ practical training.", ["on","to","for","of"], 0]
+];
+C6_BANK.c6_c_idiom = [
+["Thousands of jobs are ____ stake if the factory closes.", ["at","on","in","by"], 0],
+["____ the long run, renewable energy will be cheaper.", ["In","On","At","By"], 0],
+["The company was ____ the verge of bankruptcy.", ["on","in","at","by"], 0],
+["The proposal is still ____ discussion.", ["under","in","on","at"], 0],
+["____ any case, we must finish the work by Friday.", ["In","On","At","By"], 0],
+["The new rules came ____ effect last month.", ["into","to","in","on"], 0],
+["Her advice was ____ great value to the whole team.", ["of","in","on","at"], 0],
+["He acted ____ behalf of the entire committee.", ["on","in","at","for"], 0]
+];
+C6_BANK.c6_c_prep_v = [
+["All staff must comply ____ the safety regulations.", ["with","to","for","on"], 0],
+["Visitors are required to abide ____ the rules.", ["by","with","to","for"], 0],
+["The results do not conform ____ our expectations.", ["to","with","for","on"], 0],
+["She was deprived ____ her right to a fair trial.", ["of","from","with","to"], 0],
+["The accused was charged ____ theft.", ["with","of","for","to"], 0],
+["He was accused ____ leaking confidential documents.", ["of","with","for","to"], 0],
+["The firm was fined ____ polluting the river.", ["for","of","with","to"], 0],
+["We must refrain ____ commenting until the report is out.", ["from","of","with","to"], 0]
+];
+C6_BANK.c6_c_connector = [
+["The new system is better ____ it saves both time and money.", ["in that","in which","in what","in how"], 0],
+["Take an umbrella ____ it should rain.", ["lest","unless","although","whereas"], 0],
+["The plan is acceptable ____ it does not exceed the budget.", ["in so far as","as long as","even if","now that"], 0],
+["He spoke slowly ____ everyone could understand him.", ["so that","in case","lest","whereas"], 0],
+["The project failed ____ the lack of proper funding.", ["owing to","in spite of","regardless of","apart from"], 0],
+["She stayed calm ____ the enormous pressure.", ["despite","owing to","as for","due to"], 0],
+["____ the weather was terrible, the match went ahead.", ["Although","Despite","In spite","Even"], 0],
+["We must act now ____ the situation gets worse.", ["before","unless","whereas","while"], 0]
+];
+C6_BANK.c6_c_account = [
+["Bad weather can ____ for the poor harvest.", ["account","explain","result","lead"], 0],
+["The flight was cancelled ____ account of the fog.", ["on","in","at","by"], 0],
+["How do you ____ for the missing funds?", ["account","count","explain","answer"], 0],
+["She was asked to ____ an account of the incident.", ["give","make","take","do"], 0],
+["Tourism accounts ____ over half of the island's income.", ["for","of","to","with"], 0],
+["____ no account should you open this door.", ["On","In","At","By"], 0],
+["He took no ____ of my warning.", ["account","notice","regard","note"], 0],
+["The rise in prices is partly ____ for by fuel costs.", ["accounted","explained","counted","answered"], 0]
+];
+C6_BANK.c6_c_terms = [
+["____ terms of cost, the second option is far better.", ["In","On","At","By"], 0],
+["After years of grief she came ____ terms with her loss.", ["to","in","with","on"], 0],
+["The two countries are ____ good terms with each other.", ["on","in","at","by"], 0],
+["He spoke of the plan in glowing ____.", ["terms","words","ways","means"], 0],
+["____ the long term the investment will pay off.", ["In","On","At","By"], 0],
+["We must not accept these ____ under any circumstances.", ["terms","words","ways","means"], 0],
+["The contract is valid ____ the terms stated above.", ["under","in","on","at"], 0],
+["She is ____ friendly terms with all her colleagues.", ["on","in","at","by"], 0]
+];
+C6_BANK.c6_c_light = [
+["____ light of recent events, the meeting was postponed.", ["In","On","At","By"], 0],
+["The discovery cast new ____ on the origins of the disease.", ["light","view","sight","look"], 0],
+["Her research has brought ____ light some startling facts.", ["to","in","on","at"], 0],
+["The documents came ____ light only last year.", ["to","in","on","at"], 0],
+["____ the light of day the problem seemed less serious.", ["In","On","At","By"], 0],
+["These findings throw ____ on how the brain recovers.", ["light","view","sight","look"], 0],
+["He explained the rules in the ____ of past experience.", ["light","view","sight","look"], 0],
+["New evidence has ____ to light after decades.", ["come","gone","taken","made"], 0]
+];
+C6_BANK.c6_c_way = [
+["He mentioned it only ____ way of an apology.", ["by","in","on","at"], 0],
+["This is ____ no way an acceptable solution.", ["in","by","on","at"], 0],
+["Preparations for the festival are already ____ way.", ["under","in","on","by"], 0],
+["She is ____ her way to becoming a fine violinist.", ["on","in","by","at"], 0],
+["____ the way, have you seen my keys?", ["By","In","On","At"], 0],
+["The old customs have given ____ to new ones.", ["way","place","rise","birth"], 0],
+["He went out of his ____ to help us.", ["way","mind","road","path"], 0],
+["____ a way his criticism was justified.", ["In","By","On","At"], 0]
+];
+/* 六级题库 6/8：高阶语法 · 虚拟语气与倒装（5 × 8 = 40） */
+C6_BANK.c6_g_subj_basic = [
+["If I ____ you, I would apologise immediately.", ["were","am","was","be"], 0],
+["If she ____ harder, she would have passed the exam.", ["had studied","studied","would study","studies"], 0],
+["If it ____ tomorrow, we will stay at home.", ["rains","rained","would rain","will rain"], 0],
+["If I ____ the answer, I would tell you at once.", ["knew","know","had known","would know"], 0],
+["If he had taken the job, he ____ in London now.", ["would be","would have been","will be","is"], 0],
+["____ I had enough money, I would travel the world.", ["If","Unless","Provided","Suppose"], 0],
+["If the train ____ on time, we would not be waiting.", ["had arrived","arrived","arrives","would arrive"], 0],
+["I would lend you the book if I ____ it with me.", ["had","have","would have","had had"], 0]
+];
+C6_BANK.c6_g_subj_noun = [
+["The manager demanded that the report ____ by Friday.", ["be finished","is finished","was finished","will be finished"], 0],
+["It is essential that every applicant ____ the form in person.", ["submit","submits","submitted","will submit"], 0],
+["She insisted that he ____ present at the meeting.", ["be","is","was","will be"], 0],
+["It is vital that immediate action ____ taken.", ["be","is","was","will be"], 0],
+["The committee recommended that the rule ____ changed.", ["be","is","was","would be"], 0],
+["He suggested that we ____ the matter to a vote.", ["put","puts","putted","will put"], 0],
+["It is necessary that she ____ informed at once.", ["be","is","was","will be"], 0],
+["The doctor advised that he ____ smoking without delay.", ["stop","stops","stopped","will stop"], 0]
+];
+C6_BANK.c6_g_subj_fixed = [
+["It is high time we ____ the problem seriously.", ["addressed","address","will address","have addressed"], 0],
+["I would rather you ____ him about it just yet.", ["didn't tell","don't tell","won't tell","not tell"], 0],
+["He talks as if he ____ everything about the subject.", ["knew","knows","has known","will know"], 0],
+["She treats me as though I ____ a complete stranger.", ["were","am","was","be"], 0],
+["It is about time the government ____ on this issue.", ["acted","acts","will act","has acted"], 0],
+["I'd sooner you ____ here until the storm passes.", ["stayed","stay","will stay","have stayed"], 0],
+["He speaks English as if it ____ his mother tongue.", ["were","is","was","has been"], 0],
+["It is high time that something ____ about it.", ["was done","is done","will be done","has been done"], 0]
+];
+C6_BANK.c6_g_inv_neg = [
+["Never ____ such a magnificent sight before.", ["had I seen","I had seen","I saw","did I saw"], 0],
+["Seldom ____ him lose his temper in public.", ["does one see","one sees","one does see","saw one"], 0],
+["Not only ____ the exam, but he also won a prize.", ["did he pass","he passed","he did pass","passed he"], 0],
+["Under no circumstances ____ the door be left open.", ["should","it should","should it","it should not"], 0],
+["Hardly ____ home when the telephone rang.", ["had she got","she had got","did she get","she got"], 0],
+["Little ____ that the decision had already been made.", ["did he know","he knew","he did know","knew he"], 0],
+["No sooner ____ the station than the train departed.", ["had we reached","we had reached","did we reach","we reached"], 0],
+["Rarely ____ such honesty in a politician.", ["have I encountered","I have encountered","I encountered","did I encountered"], 0]
+];
+C6_BANK.c6_g_inv_adv = [
+["So ____ that we could hardly hear ourselves speak.", ["loud was the music","the music was loud","loud the music was","was the music loud"], 0],
+["Such ____ that nobody dared to move.", ["was his anger","his anger was","his anger is","was anger his"], 0],
+["Only after the meeting ____ the truth.", ["did we learn","we learned","we did learn","learned we"], 0],
+["So quickly ____ that nobody could follow him.", ["did he speak","he spoke","he did speak","spoke he"], 0],
+["Not until midnight ____ working.", ["did he stop","he stopped","he did stop","stopped he"], 0],
+["Only by practising daily ____ real progress.", ["can you make","you can make","you make","make you"], 0],
+["So great ____ that it took years to repair.", ["was the damage","the damage was","the damage is","damage was the"], 0],
+["Under the tree ____ a small wooden bench.", ["stood","there stood","it stood","standing"], 0]
+];
+/* 六级题库 7/8：高阶语法 · 非谓语与从句（9 × 8 = 72） */
+C6_BANK.c6_g_participle = [
+["____ finished his homework, he went out to play.", ["Having","Have","Has","Had"], 0],
+["____ from the hill, the town looks beautiful.", ["Seen","Seeing","Having seen","To see"], 0],
+["____ the letter, she signed it carefully.", ["Having written","Writing","Written","To write"], 0],
+["The machine ____ yesterday has already broken down.", ["bought","buying","to buy","having bought"], 0],
+["____ in a hurry, the essay was full of mistakes.", ["Written","Writing","Having written","To write"], 0],
+["____ carefully, the experiment yielded good results.", ["Conducted","Conducting","Having conducted","To conduct"], 0],
+["____ the problem, they called an expert immediately.", ["Realising","Realised","Having realised","To realise"], 0],
+["The house ____ in 1890 is now a museum.", ["built","building","to build","having built"], 0]
+];
+C6_BANK.c6_g_absolute = [
+["____ , the meeting was adjourned.", ["The chairman having left","The chairman left","The chairman leaves","Having left the chairman"], 0],
+["Weather ____ , we will hold the match outdoors.", ["permitting","permits","permitted","to permit"], 0],
+["All things ____ , the plan is a good one.", ["considered","considering","to consider","consider"], 0],
+["____ no bus, we had to walk home.", ["There being","There was","There is","Being"], 0],
+["The work ____ , the staff went home.", ["done","doing","to do","having done"], 0],
+["____ her eyes closed, she listened to the music.", ["With","Having","Being","As"], 0],
+["Time ____ , we will discuss the matter further.", ["permitting","permits","permitted","to permit"], 0],
+["The exam ____ over, the students relaxed.", ["being","was","is","been"], 0]
+];
+C6_BANK.c6_g_infinitive = [
+["I look forward to ____ from you soon.", ["hearing","hear","heard","be heard"], 0],
+["He used to ____ a car, but now he cycles.", ["drive","driving","drove","driven"], 0],
+["She is accustomed to ____ long hours.", ["working","work","worked","works"], 0],
+["It is no use ____ over spilt milk.", ["crying","to cry","cry","cried"], 0],
+["He denied ____ the confidential file.", ["taking","to take","taken","have taken"], 0],
+["I can't help ____ when I see that film.", ["laughing","to laugh","laugh","laughed"], 0],
+["The book is worth ____ twice.", ["reading","to read","read","being read"], 0],
+["She devoted her life to ____ the poor.", ["helping","help","helped","have helped"], 0]
+];
+C6_BANK.c6_g_relative = [
+["The man ____ car was stolen called the police.", ["whose","which","who","that"], 0],
+["This is the house ____ I was born.", ["where","which","that","when"], 0],
+["She is the only student ____ passed the test.", ["that","which","who","whom"], 0],
+["The reason ____ he resigned remains unclear.", ["why","which","that","because"], 0],
+["He came late again, ____ annoyed everyone.", ["which","that","what","it"], 0],
+["____ is well known, the earth moves round the sun.", ["As","Which","That","It"], 0],
+["Everything ____ he said turned out to be false.", ["that","which","what","who"], 0],
+["I still remember the day ____ we first met.", ["when","which","that","where"], 0]
+];
+C6_BANK.c6_g_noun_cl = [
+["I don't know ____ he will come or not.", ["whether","that","what","which"], 0],
+["The news ____ our team had won spread quickly.", ["that","which","what","whether"], 0],
+["____ he said made everyone think carefully.", ["What","That","Which","Whether"], 0],
+["It is a pity ____ she cannot attend.", ["that","what","whether","which"], 0],
+["The question is ____ we can afford it.", ["whether","that","what","which"], 0],
+["I have no idea ____ the meeting will be held.", ["where","that","what","which"], 0],
+["____ breaks the law will be punished.", ["Whoever","Who","Whomever","Whichever"], 0],
+["She asked me ____ I had finished the report.", ["whether","that","what","which"], 0]
+];
+C6_BANK.c6_g_agreement = [
+["Neither of the answers ____ correct.", ["is","are","were","have been"], 0],
+["The number of applicants ____ rising steadily.", ["is","are","were","have been"], 0],
+["A number of students ____ absent yesterday.", ["were","was","is","has been"], 0],
+["Either you or he ____ to blame.", ["is","are","were","have been"], 0],
+["The committee ____ divided on the issue.", ["are","is","was","has been"], 0],
+["Two-thirds of the city ____ destroyed in the war.", ["was","were","have been","are"], 0],
+["Mathematics ____ always been his strongest subject.", ["has","have","was","were"], 0],
+["Each of the boys ____ given a prize.", ["was","were","are","have been"], 0]
+];
+C6_BANK.c6_g_emphasis = [
+["It ____ John who broke the window.", ["was","is","were","has been"], 0],
+["It was not until midnight ____ he came home.", ["that","when","which","then"], 0],
+["It is her courage ____ I admire most.", ["that","which","what","who"], 0],
+["____ was the manager who signed the contract.", ["It","That","He","This"], 0],
+["It was because of the rain ____ we stayed in.", ["that","so","why","which"], 0],
+["It is in this room ____ the treaty was signed.", ["that","where","which","when"], 0],
+["It was only yesterday ____ I heard the news.", ["that","when","which","then"], 0],
+["____ is the children who suffer most.", ["It","They","There","That"], 0]
+];
+C6_BANK.c6_g_ellipsis = [
+["I hope ____.", ["so","it","that","such"], 0],
+["He said he would come, and he ____ so.", ["did","does","do","done"], 0],
+["She can play the piano, and so ____ I.", ["can","do","am","will"], 0],
+["If ____ possible, please reply by Friday.", ["it is","is","was","it"], 0],
+["Though ____ young, he is very mature.", ["he is","is","was","being"], 0],
+["I prefer the red ____ to the blue one.", ["one","ones","that","it"], 0],
+["He may come, or he ____ not.", ["may","might","can","will"], 0],
+["When ____ in doubt, ask an expert.", ["in doubt","you are","are","being"], 0]
+];
+C6_BANK.c6_g_mixed_subj = [
+["But ____ your help, I would have failed.", ["for","of","with","without"], 0],
+["I was ill; otherwise I ____ to the party.", ["would have gone","will go","went","had gone"], 0],
+["Without water, there ____ no life on earth.", ["would be","will be","is","was"], 0],
+["He felt fine then; otherwise he ____ a doctor.", ["would have seen","will see","saw","sees"], 0],
+["But for the fog, we ____ on time.", ["would have arrived","will arrive","arrived","arrive"], 0],
+["____ it not for the loan, the firm would collapse.", ["Were","Was","Be","Is"], 0],
+["Given more time, I ____ the report properly.", ["would have written","will write","wrote","write"], 0],
+["He ____ have helped us, but he was away.", ["would","will","can","shall"], 0]
+];
+/* 六级题库 8/8：选词填空 · 语境运用（10 × 8 = 80） */
+C6_BANK.c6_u_pos_verb = [
+["By the time we arrived, the film ____ already ____.", ["had / started","has / started","was / starting","did / start"], 0],
+["The report ____ by the committee at this very moment.", ["is being reviewed","is reviewing","reviews","has reviewed"], 0],
+["Neither he nor his brothers ____ been told the news.", ["have","has","was","is"], 0],
+["She ____ in this company for over twenty years.", ["has worked","works","is working","worked"], 0],
+["The letters ____ every morning at eight o'clock.", ["are delivered","deliver","is delivered","delivers"], 0],
+["If he ____ harder, he would not have failed.", ["had worked","worked","works","has worked"], 0],
+["A great deal of progress ____ since last April.", ["has been made","have been made","was made","were made"], 0],
+["The data ____ carefully before any conclusion is drawn.", ["must be checked","must check","must checking","must checked"], 0]
+];
+C6_BANK.c6_u_pos_noun = [
+["The ____ of the committee was finally announced.", ["decision","decide","deciding","decided"], 0],
+["Much useful ____ can be found in this library.", ["information","informations","an information","the informations"], 0],
+["The ____ are grazing in the field.", ["sheep","sheeps","a sheep","sheepes"], 0],
+["His ____ on the subject are highly regarded.", ["views","view","a view","viewing"], 0],
+["We need more ____ before making a decision.", ["evidence","evidences","an evidence","the evidences"], 0],
+["The ____ of the students is required at the meeting.", ["presence","present","presents","presenting"], 0],
+["Several ____ were damaged in the storm.", ["roofs","roofes","roof","a roof"], 0],
+["There is no ____ that he was involved.", ["proof","proofs","a proof","the proofs"], 0]
+];
+C6_BANK.c6_u_pos_adj_adv = [
+["The results were ____ disappointing.", ["extremely","extreme","extremes","extremity"], 0],
+["He answered the question ____.", ["honestly","honest","honesty","honestness"], 0],
+["This is a ____ complicated procedure.", ["highly","high","height","heighten"], 0],
+["She sang ____ at the concert last night.", ["beautifully","beautiful","beauty","beautify"], 0],
+["The ____ injured were taken to hospital at once.", ["seriously","serious","seriousness","serioused"], 0],
+["Prices rose ____ during the first quarter.", ["sharply","sharp","sharpness","sharpen"], 0],
+["It is ____ impossible to finish by Friday.", ["virtually","virtual","virtue","virtualize"], 0],
+["He is ____ likely to accept the offer.", ["highly","high","height","higher"], 0]
+];
+C6_BANK.c6_u_pos_connective = [
+["He was tired; ____ , he kept working.", ["nevertheless","therefore","moreover","because"], 0],
+["It was raining; ____ we decided to stay indoors.", ["therefore","however","although","unless"], 0],
+["____ the cost is high, the plan is worth supporting.", ["Although","Because","Therefore","Since"], 0],
+["She is intelligent; ____ , she lacks experience.", ["however","therefore","moreover","thus"], 0],
+["Study harder, ____ you will fail the exam.", ["or","and","but","so"], 0],
+["____ his youth, he handled the crisis calmly.", ["Despite","Although","However","Since"], 0],
+["The facts are clear; ____ , no one acted on them.", ["nevertheless","therefore","because","moreover"], 0],
+["____ hard he tries, he never seems to improve.", ["However","Whatever","Whenever","Wherever"], 0]
+];
+C6_BANK.c6_u_ctx_cause = [
+["The accident ____ from a simple mechanical fault.", ["arose","raised","rose","aroused"], 0],
+["Heavy smoking ____ to his poor health.", ["contributed","attributed","distributed","tributed"], 0],
+["The scheme aims to ____ poverty in rural areas.", ["alleviate","elevate","levitate","aggravate"], 0],
+["Poor planning ____ in the collapse of the project.", ["resulted","caused","led to","brought"], 0],
+["The policy was introduced ____ to reduce inflation.", ["in order","so as","for","because"], 0],
+["____ the bad weather, the match was cancelled.", ["Owing to","In spite of","Although","Whereas"], 0],
+["His success ____ largely to sheer determination.", ["is due","is because","is owing","is resulted"], 0],
+["These measures should ____ the risk of infection.", ["minimise","maximise","mobilise","modernise"], 0]
+];
+C6_BANK.c6_u_ctx_formal = [
+["The meeting will ____ at nine sharp.", ["commence","start off","kick off","get going"], 0],
+["We ____ your prompt attention to this matter.", ["request","ask for","want","wanna"], 0],
+["The findings ____ the need for further research.", ["indicate","show up","point out","tell"], 0],
+["Please ____ the attached documents carefully.", ["peruse","look at","check out","glance"], 0],
+["The proposal was ____ by the board.", ["rejected","turned down","knocked back","said no to"], 0],
+["We ____ to inform you of the following change.", ["regret","are sorry","apologise","feel bad"], 0],
+["The data ____ a clear upward trend.", ["demonstrate","show off","make out","give"], 0],
+["____ you require further details, please write.", ["Should","If you","In case","When"], 0]
+];
+C6_BANK.c6_u_ctx_academic = [
+["Constant criticism can ____ a child's confidence.", ["undermine","undertake","undergo","underline"], 0],
+["Good teaching can ____ the learning process.", ["facilitate","fabricate","fascinate","formulate"], 0],
+["The new tax will ____ the economic slowdown.", ["exacerbate","exaggerate","examinate","exalt"], 0],
+["The study seeks to ____ the causes of the decline.", ["elucidate","eliminate","elongate","emigrate"], 0],
+["These findings ____ those of earlier research.", ["corroborate","corrogate","correspond","corrode"], 0],
+["The treaty will ____ all previous agreements.", ["supersede","supervise","suppose","suppress"], 0],
+["Such policies tend to ____ social inequality.", ["perpetuate","perforate","perpetrate","permeate"], 0],
+["The evidence does not ____ such a conclusion.", ["warrant","wander","warrior","warn"], 0]
+];
+C6_BANK.c6_u_ctx_negative = [
+["His ____ behaviour cost him many friends.", ["arrogant","modest","humble","courteous"], 0],
+["The scheme ended in complete ____.", ["failure","success","triumph","victory"], 0],
+["Critics ____ the plan as hopelessly unrealistic.", ["dismissed","praised","applauded","endorsed"], 0],
+["The report paints a ____ picture of the economy.", ["bleak","bright","rosy","promising"], 0],
+["Her comments were widely seen as ____.", ["offensive","flattering","complimentary","constructive"], 0],
+["The project was ____ by endless delays.", ["plagued","aided","boosted","advanced"], 0],
+["Such measures would only ____ the problem.", ["aggravate","solve","ease","relieve"], 0],
+["He has a ____ attitude towards all authority.", ["defiant","respectful","deferential","obedient"], 0]
+];
+C6_BANK.c6_u_ctx_collocation = [
+["The scientists carried ____ a series of experiments.", ["out","on","off","up"], 0],
+["The results are consistent ____ earlier findings.", ["with","to","for","on"], 0],
+["Heavy reliance ____ imported oil is risky.", ["on","to","for","with"], 0],
+["She has a reputation ____ being extremely thorough.", ["for","of","as","with"], 0],
+["The policy had a profound impact ____ employment.", ["on","to","for","with"], 0],
+["This approach is superior ____ the traditional one.", ["to","than","over","against"], 0],
+["The findings cast doubt ____ the official account.", ["on","to","for","with"], 0],
+["He drew a sharp distinction ____ the two concepts.", ["between","among","from","with"], 0]
+];
+C6_BANK.c6_u_ctx_transition = [
+["The plan is costly; ____ it will create jobs.", ["on the other hand","therefore","consequently","because"], 0],
+["____ the risks, they went ahead with the scheme.", ["Notwithstanding","Because","Since","As a result"], 0],
+["He is young; ____ he is remarkably mature.", ["nevertheless","therefore","thus","consequently"], 0],
+["____ his objections, the committee approved it.", ["Despite","Although","Because of","Owing to"], 0],
+["Profits have fallen; ____ , the firm remains solvent.", ["even so","as a result","therefore","because"], 0],
+["____ hard it may be, we must continue.", ["However","Whatever","Although","Despite"], 0],
+["The evidence is thin; ____ , it cannot be ignored.", ["that said","therefore","moreover","because"], 0],
+["She agreed, ____ with some reluctance.", ["albeit","although","however","nevertheless"], 0]
+];
+/* 六级讲义 1/3：核心词汇 · 词义辨析（20 条） */
+C6_TEACH.c6_v_adapt = {
+  r:"adapt＝适应/改编（改变自己或原作）；adopt＝采纳/收养（拿过来用）；adept＝熟练的（形容词，be adept at）。三词形近义异。",
+  f:"adapt (oneself) to + N｜be adapted for/from｜adopt + N｜be adept at + N/ving",
+  p:["adapt to：adapt to the fast pace of life（适应于）",
+     "adapt a novel for TV／adapted from a Canadian programme（改编）",
+     "adopt a proposal／adopt a child（采纳、收养）",
+     "adept at：She is adept at handling difficult customers",
+     "易错：adapt 强调「改变以适合」，adopt 强调「拿来用」，adept 是形容词不作动词"]
+};
+C6_TEACH.c6_v_assure = {
+  r:"assure＝向某人保证（assure sb of sth / assure sb that）；ensure＝确保某事发生；insure＝投保；reassure＝安慰使放心（针对已有焦虑）。",
+  f:"assure sb of sth / that…｜ensure + that 从句 / sth｜insure (sth) against｜reassure sb",
+  p:["assure：I can assure you that…／Let me assure you of my support",
+     "ensure：Please ensure that all windows are locked（＝make sure）",
+     "insure：insure your house against fire and theft",
+     "reassure：reassure the worried mother（对方已在担心）",
+     "易错：ensure 后不接人；assure 必须接人（assure you，不能说 assure that…）"]
+};
+C6_TEACH.c6_v_impose = {
+  r:"impose＝强加/征收（impose on）；expose＝暴露/揭露（expose to）；dispose＝处理（dispose of）；propose＝提议/求婚。",
+  f:"impose … on sb/sth｜be exposed to｜dispose of｜propose that + (should) do",
+  p:["impose a tax on imported goods／impose one's views on others",
+     "expose：expose children to violent films；expose corruption（揭露）",
+     "dispose of toxic waste／dispose of the rubbish（＝get rid of）",
+     "propose：propose that the project be started earlier（从句用虚拟）",
+     "易错：expose 与 impose 常混：expose 是「揭开」，impose 是「压上去」"]
+};
+C6_TEACH.c6_v_claim = {
+  r:"claim＝声称/索取/认领；exclaim＝惊呼（因情绪而喊）；proclaim＝正式宣告；reclaim＝收回/开垦。",
+  f:"claim to do / that…｜exclaim + 直接引语｜proclaim + N/that｜reclaim + N",
+  p:["claim：claim to have seen…／claim compensation／claim one's luggage",
+     "exclaim：'What a beautiful view!' she exclaimed（后面接喊出的话）",
+     "proclaim：proclaim a state of emergency／proclaim one's innocence",
+     "reclaim：reclaim land from the sea／reclaim the deposit",
+     "易错：claim 侧重于「提出要求或主张」，proclaim 侧重于「公开正式宣布」"]
+};
+C6_TEACH.c6_v_conform = {
+  r:"conform＝遵守/符合（conform to/with）；confirm＝确认/证实；deform＝使变形；reform＝改革。",
+  f:"conform to / with｜confirm + N/that｜be deformed by｜reform + N",
+  p:["conform to the school regulations／conform with my ideas",
+     "confirm：confirm your reservation／confirm the hypothesis",
+     "deform：The heat deformed the plastic container（物理变形）",
+     "reform：reform the tax system／reform the outdated system",
+     "易错：conform 是不及物（conform to），confirm 是及物（confirm sth）"]
+};
+C6_TEACH.c6_v_compel = {
+  r:"compel＝迫使（外力强制）；impel＝驱使（内在动力）；propel＝推进（物理推动）；repel＝击退/使厌恶。",
+  f:"compel sb to do｜impel sb to do｜be propelled by｜repel an attack / sb",
+  p:["compel：Bad weather compelled us to cancel（客观所迫）",
+     "impel：His conscience impelled him to tell the truth（内心驱动）",
+     "propel：The rocket is propelled by liquid fuel（物理推进）",
+     "repel：repel the enemy attack／The smell repelled the guests",
+     "易错：compel 与 impel 都接 to do，区别在于「外力」还是「内力」"]
+};
+C6_TEACH.c6_v_induce = {
+  r:"induce＝引起/促使（lead to / persuade）；deduce＝推断（from evidence）；reduce＝减少；seduce＝诱骗/勾引。",
+  f:"induce sb to do / induce + N｜deduce … from …｜reduce … by/to｜seduce sb into doing",
+  p:["deduce：deduce that he was not present／deduce from a fingerprint",
+     "induce：The medicine may induce drowsiness／induce people to buy",
+     "reduce：reduce costs by ten percent／reduced to half",
+     "seduce：He was seduced into buying a worthless painting",
+     "易错：deduce 是「从已知推未知」，induce 是「由原因引起结果」"]
+};
+C6_TEACH.c6_n_access = {
+  r:"access＝进入权/使用权（不可数）；excess＝过量（an excess of）；assess＝评估（动词）；asset＝资产/宝贵的人或物。",
+  f:"have access to｜an excess of｜assess + N｜an asset to sb/sth",
+  p:["access：have free access to the database（access 是不可数名词）",
+     "excess：An excess of rain caused flooding／excess luggage",
+     "assess：assess the true value／assess the environmental impact",
+     "asset：Fluency is a real asset to the team（＝宝贵资源）",
+     "易错：access 后固定接 to，不是 of；assess 是动词，名词为 assessment"]
+};
+C6_TEACH.c6_n_effect = {
+  r:"effect＝影响/效果（名词）；affect＝影响（动词）；effort＝努力；afford＝负担得起（常与 can/can't 连用）。",
+  f:"take effect / have an effect on｜affect + N｜make an effort to do｜can't afford + N/to do",
+  p:["effect：take effect from January／had no effect on the patient",
+     "affect（动词）：Smoking seriously affects your health",
+     "effort：It took a great effort of will／made every effort",
+     "afford：can't afford a holiday abroad／afford private schooling",
+     "易错：effect 作动词时意为「实现」（effect change），不是「影响」"]
+};
+C6_TEACH.c6_n_status = {
+  r:"status＝地位/身份；statue＝雕像；statute＝法令/成文法；stature＝身高/（道德或专业的）高度。",
+  f:"social / legal status｜a statue of sb｜under the statute｜of international stature",
+  p:["status：the status of women／marriage confers a legal status",
+     "statue：a bronze statue of the founder",
+     "statute：The new statute takes effect next month（成文法）",
+     "stature：a scientist of international stature（比喻用法）",
+     "易错：stature 除身高外常比喻「声望、高度」，statute 只指法律"]
+};
+C6_TEACH.c6_n_prospect = {
+  r:"prospect＝前景/可能性（常复数）；perspective＝视角/观点；retrospect＝回顾（in retrospect）；inspect＝检查（动词）。",
+  f:"the prospect(s) of｜from a … perspective｜in retrospect｜inspect + N",
+  p:["prospect：job prospects／little prospect of the situation improving",
+     "perspective：from an economic perspective／a fresh perspective",
+     "retrospect：In retrospect, we made the right decision",
+     "inspect：inspect the goods carefully（动词，检查）",
+     "易错：in prospect＝即将发生；in retrospect＝事后回想"]
+};
+C6_TEACH.c6_n_facility = {
+  r:"facility＝设施（常用复数 facilities）；faculty＝全体教员/院/才能；capacity＝容量/能力（at full capacity）；capability＝能力（the capability to do）。",
+  f:"sports facilities｜the law faculty｜a capacity of / at full capacity｜the capability to do",
+  p:["facility：sports facilities／recycling facilities",
+     "faculty：a member of the law faculty／a faculty for languages",
+     "capacity：a seating capacity of 2000／working at full capacity",
+     "capability：the capability to process huge amounts of data",
+     "易错：capacity 偏「容纳量、产能」，capability 偏「能做到某事的本领」"]
+};
+C6_TEACH.c6_n_premium = {
+  r:"premium＝保险费/溢价；pension＝养老金；precision＝精确；permission＝许可。",
+  f:"pay a premium (for)｜live on a pension｜with precision｜obtain permission",
+  p:["premium：pay a premium for faster delivery／insurance premiums",
+     "pension：receives a good pension／live on a state pension",
+     "precision：measurements made with great precision",
+     "permission：obtain permission／written permission from both parents",
+     "易错：premium 还作形容词＝优质的（premium quality）"]
+};
+C6_TEACH.c6_n_convention = {
+  r:"convention＝大会/惯例；conviction＝信念/定罪；conversion＝转化/兑换；conservation＝（自然资源的）保护。",
+  f:"an annual convention｜speak with conviction｜the conversion of A into B｜wildlife conservation",
+  p:["convention：the annual convention／a social convention",
+     "conviction：spoke with great conviction／religious conviction",
+     "conversion：the conversion of the factory into flats／conversion rate",
+     "conservation：wildlife conservation／energy conservation",
+     "易错：conservation 指保护自然资源，preservation 指保存原状"]
+};
+C6_TEACH.c6_a_considerate = {
+  r:"considerate＝体贴的（为人着想）；considerable＝相当大的；considering＝考虑到（介词/连词）；considered＝经过深思的。",
+  f:"be considerate (of/towards)｜a considerable amount of｜considering + N/that",
+  p:["considerate：It was very considerate of you to wait",
+     "considerable：a considerable amount of money／considerable criticism",
+     "considering：She did well, considering that…（后接从句）",
+     "Considering his age, the child reads well（后接名词）",
+     "易错：considering 后可直接接名词或 that 从句，不要加 of"]
+};
+C6_TEACH.c6_a_economic = {
+  r:"economic＝经济的（与国民经济有关）；economical＝节约的/经济的（省钱）；economy＝经济（名词）/（作定语）经济舱；economics＝经济学。",
+  f:"economic problems｜be economical with｜the national economy｜study economics",
+  p:["economic：economic problems／economic sanctions",
+     "economical：A small car is more economical to run／be economical with resources",
+     "economy：the national economy／the economy class ticket",
+     "economics：She is studying economics at university",
+     "易错：economical 指「省钱的」，economic 指「与经济有关的」"]
+};
+C6_TEACH.c6_a_sensitive = {
+  r:"sensitive＝敏感的（易受影响或易受伤）；sensible＝明智的/合理的；sensory＝感觉的（生理）；sensual＝感官的/肉欲的。",
+  f:"be sensitive to｜It is sensible to do｜sensory functions｜sensual imagery",
+  p:["sensitive：sensitive to criticism／sensitive to light／a sensitive issue",
+     "sensible：It would be sensible to save money／a sensible way",
+     "sensory：sensory functions／sensory information（生理感觉）",
+     "sensual：sensual imagery（感官享受，常含贬义）",
+     "易错：sensible 是「明智」不是「敏感」；sensitive 才是「敏感」"]
+};
+C6_TEACH.c6_a_continuous = {
+  r:"continuous＝连续不断的（无间断）；continual＝反复发生的（有间断）；constant＝恒定的/不停的；consistent＝一致的/始终如一的。",
+  f:"continuous + N（无间断）｜continual interruptions｜constant fluctuation｜be consistent (with)",
+  p:["continuous：ran continuous for 72 hours／continuous rain（不间断）",
+     "continual：continual interruptions／continual delays（反复）",
+     "constant：in constant fluctuation／a constant background noise",
+     "consistent：consistent excellent results／be consistent with",
+     "易错：continuous 强调「中间不停」，continual 强调「一再发生」"]
+};
+C6_TEACH.c6_a_eligible = {
+  r:"eligible＝有资格的（be eligible to do/for）；legible＝（字迹）清晰的；illegible＝难以辨认的；negligible＝微不足道的。",
+  f:"be eligible to do / for｜barely legible｜illegible handwriting｜a negligible difference",
+  p:["eligible：eligible to vote／eligible to apply／eligible for benefit",
+     "legible：The handwriting was barely legible／remain legible",
+     "illegible：His signature was completely illegible",
+     "negligible：The difference is negligible／The risk is negligible",
+     "易错：negligible 与 negligent（疏忽的）拼写与含义都不同"]
+};
+C6_TEACH.c6_a_deliberate = {
+  r:"deliberate＝故意的/从容的；delicate＝微妙的/易碎的；dedicated＝敬业的/专用的；delegated＝被委派的。",
+  f:"a deliberate act｜a delicate stage｜be dedicated to｜delegate sth to sb",
+  p:["deliberate：The omission was deliberate／spoke in a deliberate manner",
+     "delicate：a delicate stage／The vase is very delicate",
+     "dedicated：a dedicated teacher／dedicated to cancer research",
+     "delegated：The work was delegated to junior staff",
+     "易错：deliberate 作动词读 /dɪˈlɪbəreɪt/＝仔细考虑，作形容词＝故意的"]
+};
+/* 六级讲义 2/3：固定搭配 · 短语动词（15 条） */
+C6_TEACH.c6_p_take = {
+  r:"take 系列是六级最高频短语：take advantage of（利用）、take … for granted（想当然）、take … into account（考虑）、take over（接管）、take off（起飞/脱下）、take after（长得像）、take part in（参加）、take on（雇佣/承担）。",
+  f:"take advantage of｜take … for granted｜take … into account｜take over / off / after / part in / on",
+  p:["take advantage of every chance（利用机会）",
+     "take it for granted that…（想当然认为）",
+     "take the cost into account（把成本考虑进去）",
+     "take over the department（接管）／take off（起飞）／take after his father（像父亲）",
+     "易错：take on 有「雇佣」和「承担」两义（take on 50 workers / take on responsibility）"]
+};
+C6_TEACH.c6_p_make = {
+  r:"make 系列：make up for（弥补）、make sense of（理解）、make way for（让路给）、make the most of（充分利用）、make out（辨认出）、make for（前往）、make sure（确保）。",
+  f:"make up for｜make sense of｜make way for｜make the most of｜make out / for / sure",
+  p:["make up for the damage／make up for a lack of experience（弥补）",
+     "make sense of this manual（看懂、理解）",
+     "make way for a new shopping centre（被…取代）",
+     "make the most of her time abroad（充分利用）",
+     "易错：make up 单独用＝编造/化妆；make up for 才是「弥补」"]
+};
+C6_TEACH.c6_p_put = {
+  r:"put 系列：put up with（忍受）、put forward（提出）、put off（推迟）、put aside（储存/搁置）、put out（扑灭）、put into effect（实施）、put away（收拾好）。",
+  f:"put up with｜put forward｜put off｜put aside｜put out / into effect / away",
+  p:["put up with rude behaviour（忍受，＝tolerate）",
+     "put forward a proposal（提出建议）",
+     "put off the match（推迟，＝postpone）／put aside some money（存钱）",
+     "put out the blaze（扑灭）／put into effect（实施）",
+     "易错：put off 后接名词或动名词（put off doing），不接不定式"]
+};
+C6_TEACH.c6_p_come = {
+  r:"come 系列：come up with（想出）、come across（偶然遇到）、come to terms with（接受/与…达成协议）、come to（总计）、come out（出版/真相大白）、come about（发生）、come up against（遭遇）。",
+  f:"come up with｜come across｜come to terms with｜come to / out / about / up against",
+  p:["come up with a solution（想出办法）",
+     "come across an old photograph（偶然发现）",
+     "come to terms with each other／come to terms with her loss（接受现实）",
+     "come to ￡500（总计）／come out（出版、真相大白）",
+     "易错：come about＝发生（How did it come about?），不用被动语态"]
+};
+C6_TEACH.c6_p_give = {
+  r:"give 系列：give rise to（引起）、give way（倒塌/让步）、give in（屈服）、give away（赠送/泄露）、give off（散发）、give up（放弃）、give out（分发）、give out（发出声音）。",
+  f:"give rise to｜give way (to)｜give in (to)｜give away / off / up / out",
+  p:["give rise to serious disease（引起、导致）",
+     "give way under the load（倒塌）／give way to new ones（被取代）",
+     "give in to their demands（屈服于）",
+     "give off harmful chemicals（散发）／give out food（分发）",
+     "易错：give up 后接动名词（give up smoking），不接不定式"]
+};
+C6_TEACH.c6_p_break = {
+  r:"break 系列：break through（突破）、break down（谈判破裂/机器故障）、break into（闯入/打入市场）、break out（战争等爆发）、break up（分手/解散）、break off（中断）。",
+  f:"break through｜break down｜break into｜break out / up / off",
+  p:["break through in cancer research（取得突破）",
+     "break down：Negotiations broke down／The car broke down（故障）",
+     "break into the warehouse（闯入）／break into the Asian market（打入市场）",
+     "break out：War broke out（爆发，无被动）",
+     "易错：break out / break down 作不及物时不用被动语态"]
+};
+C6_TEACH.c6_c_prep_adj = {
+  r:"形容词 + 介词固定搭配：prone/susceptible/immune/superior/indifferent/comparable + to；aware/typical + of。这些搭配不能凭中文直觉选介词。",
+  f:"prone/susceptible/immune/superior/indifferent/comparable to｜aware/typical of",
+  p:["prone to sunburn／susceptible to colds（易受…影响的）",
+     "immune to the disease（对…免疫）；immune from 表示「免除（义务）」",
+     "superior to any other（superior 后接 to，不用 than）",
+     "indifferent to other people's opinions（对…漠不关心）",
+     "易错：aware of／typical of 后接 of，不是 to"]
+};
+C6_TEACH.c6_c_prep_n = {
+  r:"名词 + 介词固定搭配：access/solution/attitude + to；insight + into；preference/demand + for；doubt/emphasis + on。",
+  f:"access/solution/attitude to｜insight into｜preference/demand for｜doubt/emphasis on",
+  p:["access to the database／solution to this problem／attitude to work",
+     "insight into rural life（对…的洞察）",
+     "preference for classical music／demand for skilled workers",
+     "cast doubt on the figures／place emphasis on training",
+     "易错：access 后永远接 to；solution 后接 to 不是 of"]
+};
+C6_TEACH.c6_c_idiom = {
+  r:"惯用介词短语：at stake（濒于险境）、in the long run（从长远看）、on the verge of（濒于）、under discussion（在讨论中）、in any case（无论如何）、come into effect（生效）、of great value（很有价值）、on behalf of（代表）。",
+  f:"at stake｜in the long run｜on the verge of｜under discussion｜in any case",
+  p:["at stake：Thousands of jobs are at stake（利害攸关）",
+     "in the long run（从长远看）；in the short term（短期）",
+     "on the verge of bankruptcy／on the brink of（濒于）",
+     "under discussion／under way（进行中）／under repair",
+     "易错：of + 抽象名词＝形容词（of great value＝very valuable）"]
+};
+C6_TEACH.c6_c_prep_v = {
+  r:"动词 + 介词固定搭配：comply with（遵守）、abide by（遵守）、conform to（符合）、deprive … of（剥夺）、charge … with（指控）、accuse … of（指控）、fine … for（因…罚款）、refrain from（克制）。",
+  f:"comply with｜abide by｜conform to｜deprive of｜charge with｜accuse of｜refrain from",
+  p:["comply with the regulations／abide by the rules（遵守）",
+     "deprive her of her right（剥夺）",
+     "charged with theft／accused of leaking documents（with 与 of 不可互换）",
+     "fined for polluting the river（因…被罚）",
+     "易错：accuse … of；charge … with；suspect … of —— 介词各不相同"]
+};
+C6_TEACH.c6_c_connector = {
+  r:"逻辑连接：in that＝在于/因为（引出原因）；lest＝以免（后接 should + 原形或动词原形）；in so far as＝在…范围内；so that＝以便；despite/although 表让步；owing to 表原因。",
+  f:"in that + 从句｜lest + (should) do｜in so far as｜so that｜owing to + N",
+  p:["in that：The system is better in that it saves time（＝because）",
+     "lest：Take an umbrella lest it (should) rain（虚拟语气）",
+     "in so far as：acceptable in so far as it doesn't exceed the budget",
+     "despite + 名词（不加 of）；although + 从句",
+     "易错：despite 是介词后接名词，although 是连词后接从句"]
+};
+C6_TEACH.c6_c_account = {
+  r:"account for＝解释/占（比例）；on account of＝因为；on no account＝绝不（句首倒装）；take account of / take … into account＝考虑到；give an account of＝描述。",
+  f:"account for｜on account of｜on no account（倒装）｜take … into account",
+  p:["account for：Bad weather can account for the poor harvest／accounts for over half of income",
+     "on account of the fog（＝because of）",
+     "On no account should you open this door（否定词提前要倒装）",
+     "take no account of my warning（不考虑）",
+     "易错：on no account / under no circumstances 置于句首必须部分倒装"]
+};
+C6_TEACH.c6_c_terms = {
+  r:"in terms of＝就…而言；come to terms with＝接受（不愉快现实）/达成协议；be on good terms with＝与…关系好；in the long term＝从长远看；under the terms（of）＝根据…条款。",
+  f:"in terms of｜come to terms with｜be on … terms with｜in the long term",
+  p:["in terms of cost（就成本而言）",
+     "come to terms with her loss（接受现实）／come to terms with each other（达成协议）",
+     "on good terms with／on friendly terms with（关系好）",
+     "in the long term（从长远看）／in the short term（短期）",
+     "易错：terms 单数 term 指「学期/任期」，in terms of 必须用复数"]
+};
+C6_TEACH.c6_c_light = {
+  r:"in (the) light of＝鉴于；cast/throw/shed light on＝阐明；bring … to light＝揭露；come to light＝（真相）显露。",
+  f:"in (the) light of｜cast/throw/shed light on｜bring … to light｜come to light",
+  p:["in light of recent events（鉴于最近的事态）",
+     "cast new light on the origins／throw light on how the brain recovers（阐明）",
+     "bring to light some startling facts（使…显露）",
+     "come to light（不及物，真相大白，无被动）",
+     "易错：light 前通常有 the：in the light of；美国英语常省略 the"]
+};
+C6_TEACH.c6_c_way = {
+  r:"by way of＝作为/经由；in no way＝绝不（句首倒装）；under way＝进行中；on one's way to＝在去…的路上/即将；by the way＝顺便说；give way to＝让位于；go out of one's way＝特意；in a way＝在某种程度上。",
+  f:"by way of｜in no way（倒装）｜under way｜on one's way to｜give way to",
+  p:["by way of an apology（作为道歉）／by way of London（经由伦敦）",
+     "in no way：This is in no way an acceptable solution（句首则倒装：In no way is this…）",
+     "under way：Preparations are already under way（进行中）",
+     "on her way to becoming a violinist（即将成为）",
+     "易错：in no way / by no means 置于句首时，主句要部分倒装"]
+};
+/* 六级讲义 3/3：高阶语法 + 选词填空语境运用（24 条） */
+C6_TEACH.c6_g_subj_basic = {
+  r:"虚拟语气 if 型三时态：与现在相反用过去式（be 一律用 were）；与过去相反用 had done；与将来相反用 were to do / should do。主句分别用 would/could/might + do / have done。",
+  f:"If + 过去式, would + do｜If + had done, would have done｜If + were to / should do, would do",
+  p:["与现在相反：If I were you, I would apologise（be 动词一律用 were）",
+     "与过去相反：If she had studied harder, she would have passed",
+     "真实条件（非虚拟）：If it rains tomorrow, we will stay（主句用 will）",
+     "混合虚拟：If he had taken the job, he would be in London now（过去条件→现在结果）",
+     "易错：if 从句用 were to / should 表将来虚拟；will 只用于真实条件句"]
+};
+C6_TEACH.c6_g_subj_noun = {
+  r:"表示「要求、建议、命令、重要性」的词后接 that 从句时，从句谓语用 (should) + 动词原形，should 可省略（美式常省）。触发词：demand/insist/suggest/recommend/advise/essential/vital/necessary。",
+  f:"demand/insist/suggest that + (should) do｜It is essential/vital/necessary that + (should) do",
+  p:["The manager demanded that the report be finished（省略 should）",
+     "It is essential that every applicant submit the form in person",
+     "She insisted that he be present at the meeting",
+     "The committee recommended that the rule be changed",
+     "易错：suggest 作「暗示」解时不用虚拟（His silence suggests that he agrees）"]
+};
+C6_TEACH.c6_g_subj_fixed = {
+  r:"虚拟固定句式：It is (high/about) time that + 过去式；would rather / would sooner + 过去式（对现在将来）或 had done（对过去）；as if / as though + 过去式或 had done。",
+  f:"It is high time (that) + 过去式｜would rather (that) + 过去式 / had done｜as if + 过去式",
+  p:["It is high time we addressed the problem（该做而没做）",
+     "I would rather you didn't tell him about it just yet",
+     "He talks as if he knew everything about the subject（其实不知道）",
+     "She treats me as though I were a complete stranger",
+     "易错：as if 后若表示真实情况则用陈述语气（It looks as if it is going to rain）"]
+};
+C6_TEACH.c6_g_inv_neg = {
+  r:"否定或半否定词置于句首时，主句要部分倒装（助动词/情态动词提到主语前）：never, seldom, hardly, scarcely, rarely, little, not only, no sooner, under no circumstances, in no way。",
+  f:"Never/Seldom/Hardly + 助动词 + 主语 + 谓语｜No sooner had … than …｜Hardly had … when …",
+  p:["Never had I seen such a magnificent sight before",
+     "Not only did he pass the exam, but he also won a prize",
+     "Hardly had she got home when the telephone rang（＝no sooner … than）",
+     "Under no circumstances should the door be left open",
+     "易错：not only … but also 只在 not only 分句倒装，but also 分句不倒装"]
+};
+C6_TEACH.c6_g_inv_adv = {
+  r:"so/such 置于句首、only + 状语置于句首、以及地点状语提前时，主句部分倒装。注意 such 置于句首时 such 后接名词。",
+  f:"So + adj./adv. + 助动词 + 主语｜Such + (a) + N + 助动词 + 主语｜Only + 状语 + 助动词 + 主语",
+  p:["So loud was the music that we could hardly hear ourselves speak",
+     "Such was his anger that nobody dared to move",
+     "Only after the meeting did we learn the truth",
+     "Not until midnight did he stop working",
+     "易错：only 修饰主语时不倒装（Only he knows the answer）"]
+};
+C6_TEACH.c6_g_participle = {
+  r:"分词作状语时，其逻辑主语必须与主句主语一致，否则构成垂悬分词。主动关系用现在分词（doing / having done），被动关系用过去分词（done）。",
+  f:"Having done …, sb …（主动且先于主句）｜Done …, sb …（被动）｜doing …, sb …（同时）",
+  p:["主动先后：Having finished his homework, he went out to play",
+     "被动：Seen from the hill, the town looks beautiful（town 被看）",
+     "Written in a hurry, the essay was full of mistakes（essay 被写）",
+     "Conducted carefully, the experiment yielded good results",
+     "易错：分词逻辑主语与主句主语不一致即为错误（垂悬分词）"]
+};
+C6_TEACH.c6_g_absolute = {
+  r:"独立主格＝名词/代词 + 分词（/形容词/介词短语），自带逻辑主语，与主句主语不同，在句中作状语。常表时间、原因、条件、伴随。也可由 with 引导。",
+  f:"N + doing / done（独立主格）｜with + N + 分词/介词短语｜weather permitting（固定说法）",
+  p:["The chairman having left, the meeting was adjourned（独立主格作原因）",
+     "Weather permitting, we will hold the match outdoors（＝If weather permits）",
+     "All things considered, the plan is a good one（＝If everything is considered）",
+     "There being no bus, we had to walk home（there be 的独立主格）",
+     "易错：独立主格不是句子，不能有谓语动词；与分词状语的区别在于是否自带主语"]
+};
+C6_TEACH.c6_g_infinitive = {
+  r:"to 在部分搭配中是介词，后面必须接动名词：look forward to, be accustomed to, devote … to, object to, be used to。另有固定用动名词的结构：It is no use doing, can't help doing, be worth doing, deny doing。",
+  f:"look forward to / be accustomed to / devote to + doing｜It is no use doing｜can't help doing｜be worth doing",
+  p:["look forward to hearing from you（to 是介词）",
+     "be accustomed to working long hours（习惯于）",
+     "It is no use crying over spilt milk（固定句式）",
+     "can't help laughing／be worth reading twice",
+     "易错：used to do（过去常常）vs be used to doing（习惯于）—— 结构完全不同"]
+};
+C6_TEACH.c6_g_relative = {
+  r:"定语从句关系词：whose 表所属；where/when/why 分别表地点、时间、原因；先行词被 only/最高级/序数词/all/everything 修饰时常用 that；as 可引导非限定性定语从句置于句首。",
+  f:"whose + N｜where/when/why + 从句｜the only + N + that｜As is well known, …",
+  p:["whose：The man whose car was stolen called the police",
+     "where/when/why：the house where I was born／the day when we first met／the reason why he resigned",
+     "只用 that：the only student that passed／Everything that he said",
+     "as 引导：As is well known, the earth moves round the sun",
+     "易错：非限定性定语从句不能用 that，用 which（指整句）或 who/whom"]
+};
+C6_TEACH.c6_g_noun_cl = {
+  r:"名词性从句连接词：whether/if 表「是否」（介词后只能用 whether）；that 引导陈述内容（同位语从句常用 that）；what/whoever 等连接代词在从句中充当成分。",
+  f:"whether … or not｜the news that + 从句（同位语）｜what / whoever + 从句｜It is a pity that …",
+  p:["whether：I don't know whether he will come or not（or not 前只用 whether）",
+     "同位语从句：The news that our team had won spread quickly",
+     "what 从句作主语：What he said made everyone think carefully",
+     "whoever：Whoever breaks the law will be punished（＝anyone who）",
+     "易错：that 在同位语从句中不充当成分、不能省略；在定语从句中要充当成分"]
+};
+C6_TEACH.c6_g_agreement = {
+  r:"主谓一致要点：neither/either/each 作主语用单数；the number of 用单数、a number of 用复数；就近原则（either … or / neither … nor / there be）；集合名词强调成员时用复数；分数/百分数后接 of + 名词决定单复数。",
+  f:"neither/either/each + 单数动词｜the number of + 单数｜a number of + 复数｜就近原则",
+  p:["Neither of the answers is correct／Each of the boys was given a prize",
+     "The number of applicants is rising／A number of students were absent",
+     "就近：Either you or he is to blame（谓语随 he）",
+     "集合名词：The committee are divided（强调成员各自意见）",
+     "易错：mathematics/physics 等 -ics 名词作主语通常接单数动词"]
+};
+C6_TEACH.c6_g_emphasis = {
+  r:"强调句结构 It is/was + 被强调部分 + that/who + 其余部分。可强调主语、宾语、状语（时间/地点/原因），但不能强调谓语。判断方法：去掉 It is/was 与 that 后句子仍成立。",
+  f:"It is/was + 被强调成分 + that/who + 其余｜It was not until … that …",
+  p:["强调主语：It was John who broke the window",
+     "强调状语：It is in this room that the treaty was signed",
+     "not until 强调：It was not until midnight that he came home",
+     "强调原因：It was because of the rain that we stayed in",
+     "易错：强调时间/地点状语仍用 that，不用 when/where"]
+};
+C6_TEACH.c6_g_ellipsis = {
+  r:"省略与替代：so/it 替代前文内容（I hope so）；do so / do it 替代动词短语；one/ones 替代前文可数名词；状语从句中主语与主句一致且含 be 时可省略（if possible, though young, when in doubt）。",
+  f:"I hope so / I think not｜do so｜if (it is) possible｜though (he is) young｜one / ones",
+  p:["I hope so（＝I hope that he will come）／I hope not",
+     "He said he would come, and he did so",
+     "省略：If (it is) possible, please reply by Friday／Though (he is) young, he is mature",
+     "替代词：I prefer the red one to the blue one",
+     "易错：状语从句省略的条件是从句主语与主句主语一致且从句含 be 动词"]
+};
+C6_TEACH.c6_g_mixed_subj = {
+  r:"含蓄虚拟：不出现 if 从句，而用 but for（要不是）、without、otherwise/or、given more time、Were it not for 等表达假设条件。主句仍用 would/could/might + (have) done。",
+  f:"But for / Without + N, would (have) done｜otherwise, would have done｜Were it not for + N",
+  p:["But for your help, I would have failed（＝If it had not been for）",
+     "Without water, there would be no life on earth（与现在相反）",
+     "otherwise：I was ill; otherwise I would have gone to the party",
+     "Were it not for the loan, the firm would collapse（倒装式虚拟）",
+     "易错：otherwise 后的虚拟需根据语境判断是对现在还是对过去"]
+};
+C6_TEACH.c6_u_pos_verb = {
+  r:"选词填空判断动词形式：看时间状语定时态、看主语定单复数、看主语与动词关系定主动/被动、看语境定语气（虚拟）。",
+  f:"by the time + had done｜at this moment + is being done｜for/since + has done｜must be done",
+  p:["过去完成：By the time we arrived, the film had already started",
+     "现在进行被动：The report is being reviewed at this very moment",
+     "现在完成：She has worked in this company for over twenty years",
+     "情态被动：The data must be checked before any conclusion is drawn",
+     "易错：by the time 引导的从句是过去时，主句用过去完成时"]
+};
+C6_TEACH.c6_u_pos_noun = {
+  r:"名词判断：不可数名词无复数也无 a/an（information, evidence, proof, advice）；单复同形的词（sheep, deer, series）；只用作复数的词（roofs→roofs 规则变化）。",
+  f:"不可数：information / evidence / proof / advice（无 s）｜单复同形：sheep / deer｜复数：roofs",
+  p:["不可数：Much useful information／more evidence／no proof（不能加 s）",
+     "单复同形：The sheep are grazing in the field（sheep 单复同形）",
+     "规则复数：Several roofs were damaged（roof→roofs，不是 rooves）",
+     "抽象名词：the presence of the students／His views on the subject",
+     "易错：evidence / information / advice / furniture 均为不可数名词"]
+};
+C6_TEACH.c6_u_pos_adj_adv = {
+  r:"形容词修饰名词，副词修饰动词、形容词或整个句子。以 -ly 结尾的多为副词，但 friendly/lovely/lonely 是形容词；fast/hard/late 形副同形。",
+  f:"副词 + 形容词（extremely disappointing）｜动词 + 副词（answered honestly）",
+  p:["修饰形容词：The results were extremely disappointing（用副词）",
+     "修饰动词：She sang beautifully at the concert",
+     "高频搭配：highly complicated／sharply rose／virtually impossible",
+     "the + 形容词：The seriously injured were taken to hospital（the + adj. 表一类人）",
+     "易错：feel/look/sound 后接形容词不接副词（The cloth feels soft）"]
+};
+C6_TEACH.c6_u_pos_connective = {
+  r:"逻辑关系判断：转折让步用 however/nevertheless/despite/although；因果用 therefore/thus/consequently/owing to；递进用 moreover/furthermore；选择用 or。",
+  f:"转折：however / nevertheless / despite / although｜因果：therefore / thus / owing to｜祈使句 + or + 句子",
+  p:["转折：He was tired; nevertheless, he kept working（nevertheless 是副词，用分号）",
+     "因果：It was raining; therefore we decided to stay indoors",
+     "让步：Despite his youth, he handled the crisis calmly（despite + 名词）",
+     "祈使句：Study harder, or you will fail the exam（or 表「否则」）",
+     "易错：however 是副词不能连接两个句子；although 是连词后接从句"]
+};
+C6_TEACH.c6_u_ctx_cause = {
+  r:"因果语境高频词：arise from（起因于）、contribute to（促成）、result in（导致）、lead to（导致）、owing to（由于）、be due to（由于）、alleviate（缓解）、minimise（最小化）。",
+  f:"arise from｜contribute to｜result in / lead to｜owing to + N｜be due to + N",
+  p:["arise from：The accident arose from a simple mechanical fault（起因于）",
+     "contribute to：Heavy smoking contributed to his poor health（促成）",
+     "result in：Poor planning resulted in the collapse of the project",
+     "alleviate poverty／minimise the risk（缓解、最小化）",
+     "易错：arise from 是「由…引起」，result in 是「引起…」，方向相反"]
+};
+C6_TEACH.c6_u_ctx_formal = {
+  r:"正式语体词汇替换口语词：commence→start；request→ask for；indicate→show；peruse→read；reject→turn down；regret to inform→are sorry to tell；demonstrate→show；Should you require→If you require。",
+  f:"正式：commence / request / indicate / peruse / reject / demonstrate｜Should + 主语 + do（倒装条件）",
+  p:["commence：The meeting will commence at nine sharp（正式＝begin）",
+     "request：We request your prompt attention to this matter",
+     "peruse：Please peruse the attached documents carefully（仔细阅读）",
+     "Should you require further details, please write（＝If you should require）",
+     "易错：Should 提前的倒装条件句只用于正式书面语"]
+};
+C6_TEACH.c6_u_ctx_academic = {
+  r:"学术高频动词：undermine（削弱）、facilitate（促进）、exacerbate（加剧）、elucidate（阐明）、corroborate（证实）、supersede（取代）、perpetuate（使持续）、warrant（使有正当理由）。",
+  f:"undermine｜facilitate｜exacerbate｜elucidate the causes of｜corroborate findings",
+  p:["undermine：Constant criticism can undermine a child's confidence（削弱）",
+     "facilitate：Good teaching can facilitate the learning process（促进）",
+     "exacerbate：The new tax will exacerbate the economic slowdown（使恶化）",
+     "corroborate：These findings corroborate those of earlier research（印证）",
+     "易错：warrant 作动词＝使…有正当理由（The evidence does not warrant such a conclusion）"]
+};
+C6_TEACH.c6_u_ctx_negative = {
+  r:"语义色彩判断：消极词 arrogant/failure/bleak/offensive/plagued by/aggravate/defiant/dismissed；积极词 modest/success/bright/complimentary。选词填空时须与上下文感情色彩一致。",
+  f:"消极：arrogant / bleak / offensive / defiant｜被动搭配：be plagued by delays",
+  p:["arrogant behaviour（傲慢的，消极）",
+     "The report paints a bleak picture of the economy（惨淡的）",
+     "The project was plagued by endless delays（被…困扰）",
+     "aggravate the problem（使恶化，不是「解决」）",
+     "易错：aggravate 是「加重」，alleviate/relieve 才是「缓解」"]
+};
+C6_TEACH.c6_u_ctx_collocation = {
+  r:"上下文固定搭配呼应：carry out experiments；be consistent with；reliance on；a reputation for；impact on；superior to；cast doubt on；a distinction between。做题时看空格前后的介词与名词搭配。",
+  f:"carry out｜consistent with｜reliance on｜reputation for｜impact on｜superior to",
+  p:["carry out a series of experiments（实施）",
+     "consistent with earlier findings（与…一致）",
+     "Heavy reliance on imported oil／a reputation for being thorough",
+     "a profound impact on employment／cast doubt on the official account",
+     "易错：consistent with 后接 with；distinction between 用于两者之间"]
+};
+C6_TEACH.c6_u_ctx_transition = {
+  r:"转折让步语境词：on the other hand（另一方面）、notwithstanding（尽管）、nevertheless（然而）、despite（尽管）、even so（即便如此）、albeit（虽则）、that said（话虽如此）。",
+  f:"on the other hand｜notwithstanding + N｜nevertheless（副词）｜albeit + 介词短语",
+  p:["on the other hand：The plan is costly; on the other hand, it will create jobs",
+     "notwithstanding：Notwithstanding the risks, they went ahead（＝despite）",
+     "even so：Profits have fallen; even so, the firm remains solvent",
+     "albeit：She agreed, albeit with some reluctance（后接省略结构）",
+     "易错：albeit 是连词但后接省略的从句（albeit + 介词短语/形容词）"]
+};
+
+const C6_DATA = { tree: C6_KNOWLEDGE_TREE, bank: C6_BANK, teach: C6_TEACH, levels: C6_GROUP_LEVELS, base: 30 };
+
+
 const SUBJECTS = {
     en: { key:'en', name:'初中英语',   short:'英语', icon:'🔤', data: EN_DATA, saveKey:'englishQuest_kp_v1' },
-    jp: { key:'jp', name:'日语 N3-N1', short:'日语', icon:'🇯🇵', data: JP_DATA, saveKey:'japaneseQuest_kp_v1' }
+    jp: { key:'jp', name:'日语 N3-N1', short:'日语', icon:'🇯🇵', data: JP_DATA, saveKey:'japaneseQuest_kp_v1' },
+    c6: { key:'c6', name:'六级 CET-6',  short:'六级', icon:'🎓', data: C6_DATA, saveKey:'cet6Quest_kp_v1' }
 };
 let CUR_SUBJECT = 'en';
 
@@ -3481,7 +4728,7 @@ function switchSubject(key){
 
 function updateSubjectUI(){
     const s = SUBJECTS[CUR_SUBJECT];
-    ['en','jp'].forEach(function(k){
+    ['en','jp','c6'].forEach(function(k){
         const btn = document.getElementById('sub_' + k);
         if(btn) btn.className = 'subject-btn' + (k === CUR_SUBJECT ? ' active sub-' + k : '');
     });
@@ -4174,9 +5421,10 @@ var teachState = { tab:'group', groupIdx:0, catIdx:0, kpId:'' };
 function escT(s){
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-// 英语：基础 / 进阶 / 提升；日语：N3 / N2 / N1
+// 英语：基础 / 进阶 / 提升；日语：N3 / N2 / N1；六级：核心 / 进阶 / 冲刺
 function lvName(n){
     if(CUR_SUBJECT === 'jp') return n === 1 ? 'N3' : (n === 2 ? 'N2' : 'N1');
+    if(CUR_SUBJECT === 'c6') return n === 1 ? '核心' : (n === 2 ? '进阶' : '冲刺');
     return n === 1 ? '基础' : (n === 2 ? '进阶' : '提升');
 }
 // 名称自带“基础 / 进阶 / 提升”的（如 被动语态基础）就不再重复标难度
@@ -4185,6 +5433,7 @@ function kpLabel(k){
     var tail = k.name.slice(-2);
     if(tail === '基础' || tail === '进阶' || tail === '提升') return escT(k.name);
     if(CUR_SUBJECT === 'jp' && /N[123]/.test(k.name)) return escT(k.name);
+    if(CUR_SUBJECT === 'c6' && /核心|进阶|冲刺/.test(k.name)) return escT(k.name);
     return escT(k.name) + '<span class="teach-lv teach-lv' + k.level + '">' + lvName(k.level) + '</span>';
 }
 // 渲染一道题（label 传前缀，如 “例1. ” 或 “1. ”）
